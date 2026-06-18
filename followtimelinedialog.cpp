@@ -17,16 +17,16 @@ FollowTimelineDialog::FollowTimelineDialog(const QString& customerId,
     m_repo(repo),
     m_currentUser(currentUser)
 {
-    setWindowTitle("Follow-up Activity Timeline Engine");
+    setWindowTitle("客户跟进时间轴");
     resize(460, 480);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
 
     // 顶部水平底座：标题和纯文本 [+] 号添加按钮并排
     QHBoxLayout* topHeaderLayout = new QHBoxLayout();
-    topHeaderLayout->addWidget(new QLabel("Chronological Tracking Axis:", this));
+    topHeaderLayout->addWidget(new QLabel("时间轴追踪记录:", this));
 
-    QPushButton* plusButton = new QPushButton("[+] Add Follow Log", this);
+    QPushButton* plusButton = new QPushButton("[+] 添加跟进记录", this);
     plusButton->setFixedWidth(130);
     topHeaderLayout->addWidget(plusButton);
     mainLayout->addLayout(topHeaderLayout);
@@ -49,15 +49,15 @@ void FollowTimelineDialog::renderTimelineAxis()
     std::vector<FollowRecord> records = m_repo->getFollowRecords(m_customerId);
 
     if (records.empty()) {
-        m_axisViewer->append(" No trackable footprints logged yet.");
+        m_axisViewer->append(" 暂无跟进记录。");
         return;
     }
 
     for (const auto& log : records) {
         QString stamp = log.getDate().toString("yyyy-MM-dd HH:mm:ss");
-        m_axisViewer->append(QString("Time Node: %1").arg(stamp));
-        m_axisViewer->append(QString("Operator: %1 [ID: %2]").arg(log.getOperatorName(), log.getOperatorId()));
-        m_axisViewer->append(QString("Execution Log: %1").arg(log.getContent()));
+        m_axisViewer->append(QString("时间节点: %1").arg(stamp));
+        m_axisViewer->append(QString("操作人员: %1 [ID: %2]").arg(log.getOperatorName(), log.getOperatorId()));
+        m_axisViewer->append(QString("跟进内容: %1").arg(log.getContent()));
         m_axisViewer->append("==================================================");
     }
 }
@@ -66,8 +66,8 @@ void FollowTimelineDialog::handlePlusAppendAction()
 {
     bool ok;
     // 呼叫轻量级输入框
-    QString newLogText = QInputDialog::getMultiLineText(this, "Append Tracking Record",
-                                                        "Type new communication details:", "", &ok);
+    QString newLogText = QInputDialog::getMultiLineText(this, "添加跟进记录",
+                                                        "请输入新的沟通细节:", "", &ok);
     if (ok && !newLogText.trimmed().isEmpty()) {
         QString recordId = "REC_AUTO_" + QString::number(QDateTime::currentMSecsSinceEpoch());
 
@@ -83,7 +83,7 @@ void FollowTimelineDialog::handlePlusAppendAction()
         if (m_repo->insertFollowRecord(freshLog)) {
             renderTimelineAxis(); // 原地重绘刷屏
         } else {
-            QMessageBox::warning(this, "Abort", "Persistence layer validation failed.");
+            QMessageBox::warning(this, "失败", "保存记录失败。");
         }
     }
 }

@@ -2,25 +2,25 @@
 #include <QMessageBox>
 #include <memory>
 
-// 1. 引入实体模型、数据接口与 Mock 仓库
+// 1. 引入实体模型、数据接口与仓库实现
 #include "GlobalModels.h"
 #include "ICustomerRepository.h"
-#include "MockCustomerRepo.h"
+#include "SQLiteCustomerRepo.h"
 
 // 2. 引入三个角色的隔离子类主窗口
 #include "SalesMainWindow.h"
-#include "ManagerMainWindow.h" // 待后续填空，先包含进来
-#include "adminmainwindow.h"   // 待后续填空，先包含进来
+#include "ManagerMainWindow.h"
+#include "adminmainwindow.h"
 
-#include "logindialog.h" // 假设的登录对话框
+#include "logindialog.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    // 【架构升级】：改用 std::shared_ptr 托管生命周期，
-    // 这样基类和子类都能安全共享同一个数据源，彻底杜绝悬空野指针。
-    std::shared_ptr<ICustomerRepository> repo = std::make_shared<MockCustomerRepo>();
+    // 【架构升级】：改用 std::shared_ptr 托管生命周期
+    // 使用 SQLite 数据库，而不是 Mock 实现
+    std::shared_ptr<ICustomerRepository> repo = std::make_shared<SQLiteCustomerRepo>();
 
     // 1. 初始化数据库（Mock 返回 true，未来切换到真实 SQLite 时无缝替换）
     if (!repo->initializeDatabase("crm.db")) {

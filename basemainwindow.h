@@ -3,7 +3,7 @@
 
 #include "ICustomerRepository.h"
 #include "GlobalModels.h"
-#include "customercarddialog.h"
+#include "customerdetaildialog.h"
 #include <QMainWindow>
 #include <QSplitter>
 #include <QListWidget>

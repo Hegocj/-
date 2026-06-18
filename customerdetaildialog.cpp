@@ -1,5 +1,5 @@
-#include "customercarddialog.h"
-#include "FollowTimelineDialog.h"
+#include "customerdetaildialog.h"
+#include "followtimelinedialog.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -18,7 +18,7 @@ CustomerDetailDialog::CustomerDetailDialog(const QString& customerId,
     , m_repo(repo)
     , m_currentUser(currentUser)
 {
-    setWindowTitle("Unified Customer Matrix Panel");
+    setWindowTitle("客户详情");
     resize(420, 340);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
@@ -33,23 +33,23 @@ CustomerDetailDialog::CustomerDetailDialog(const QString& customerId,
     // 负责人直接采用 ComboBox 承载
     m_ownerCombo = new QComboBox(this);
 
-    formLayout->addRow("Customer ID:", m_idEdit);
-    formLayout->addRow("Customer Name:", m_nameEdit);
-    formLayout->addRow("Phone Number:", m_phoneEdit);
-    formLayout->addRow("Customer Level:", m_levelEdit);
-    formLayout->addRow("Assigned Sales Staff:", m_ownerCombo);
+    formLayout->addRow("客户ID:", m_idEdit);
+    formLayout->addRow("客户姓名:", m_nameEdit);
+    formLayout->addRow("联系电话:", m_phoneEdit);
+    formLayout->addRow("客户等级:", m_levelEdit);
+    formLayout->addRow("负责销售:", m_ownerCombo);
     mainLayout->addLayout(formLayout);
 
-    // 2. 注入核心高能“跟进信息”按钮
-    m_followBtn = new QPushButton("View & Append Follow-up Timeline", this);
+    // 2. 注入核心高能"跟进信息"按钮
+    m_followBtn = new QPushButton("查看和添加跟进记录", this);
     mainLayout->addWidget(m_followBtn);
 
     mainLayout->addSpacing(10);
 
     // 3. 动态拓展功能按钮栏（认领、放逐特权）
     QHBoxLayout* featureLayout = new QHBoxLayout();
-    m_claimBtn = new QPushButton("Claim to My Private Sea", this);
-    m_evictBtn = new QPushButton("Force Evict to Public High Sea", this);
+    m_claimBtn = new QPushButton("认领客户", this);
+    m_evictBtn = new QPushButton("释放到公海池", this);
     m_claimBtn->hide(); // 默认先隐藏，靠权限判定决定是否亮起
     m_evictBtn->hide();
     featureLayout->addWidget(m_claimBtn);
@@ -58,8 +58,8 @@ CustomerDetailDialog::CustomerDetailDialog(const QString& customerId,
 
     // 4. 标准底座按钮（保存/取消）
     QHBoxLayout* bottomLayout = new QHBoxLayout();
-    m_saveBtn = new QPushButton("Save", this);
-    m_cancelBtn = new QPushButton("Cancel", this);
+    m_saveBtn = new QPushButton("保存", this);
+    m_cancelBtn = new QPushButton("取消", this);
     bottomLayout->addWidget(m_saveBtn);
     bottomLayout->addWidget(m_cancelBtn);
     mainLayout->addLayout(bottomLayout);
@@ -197,10 +197,10 @@ void CustomerDetailDialog::handleSaveOrCommit()
     }
 
     if (m_repo->saveCustomer(m_customer)) {
-        QMessageBox::information(this, "Notification", "Customer file successfully synchronized.");
+        QMessageBox::information(this, "提示", "客户信息保存成功！");
         accept();
     } else {
-        QMessageBox::critical(this, "Error", "Persistence transmission blocked.");
+        QMessageBox::critical(this, "错误", "保存失败！");
     }
 }
 
@@ -208,10 +208,10 @@ void CustomerDetailDialog::handleClaimAction()
 {
     // 公海池直通认领
     if (m_repo->claimCustomer(m_customer.getId(), m_currentUser.getUserId())) {
-        QMessageBox::information(this, "Success", "Customer assigned to your private pool.");
+        QMessageBox::information(this, "成功", "客户认领成功！");
         accept();
     } else {
-        QMessageBox::warning(this, "Failed", "Claim denied. Asset might have been preempted.");
+        QMessageBox::warning(this, "失败", "认领失败，可能客户已被其他人认领！");
         reject();
     }
 }
@@ -219,13 +219,13 @@ void CustomerDetailDialog::handleClaimAction()
 void CustomerDetailDialog::handleEvictAction()
 {
     // 经理一键剥离，负责人强行刷空置回公海
-    auto reply = QMessageBox::question(this, "Eviction Confirmation",
-                                       "Are you sure you want to strip this asset and evict it back to the public pool?",
+    auto reply = QMessageBox::question(this, "确认释放",
+                                       "确定要将该客户释放到公海池吗？",
                                        QMessageBox::Yes | QMessageBox::No);
     if (reply == QMessageBox::Yes) {
         m_customer.setOwnerId(""); // 清空负责人
         if (m_repo->saveCustomer(m_customer)) {
-            QMessageBox::information(this, "Evicted", "Asset returned to high seas.");
+            QMessageBox::information(this, "成功", "客户已释放到公海池！");
             accept();
         }
     }

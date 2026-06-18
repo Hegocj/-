@@ -1,4 +1,5 @@
 #include "AdminMainWindow.h"
+#include "customerdetaildialog.h"
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QDateTime>
@@ -82,9 +83,9 @@ void AdminMainWindow::renderDepartmentTree()
 
             // 创建顶级父节点（部门/经理节点），Qt 会自动在前面挂载 `>` 箭头
             QTreeWidgetItem* managerItem = new QTreeWidgetItem(s_orgTree);
-            managerItem->setText(0, user.getDepartment() + " [Manager: " + user.getUsername() + "]");
+            managerItem->setText(0, user.getDepartment() + " [经理: " + user.getUsername() + "]");
             managerItem->setText(1, user.getUserId());
-            managerItem->setText(2, "Active Manager");
+            managerItem->setText(2, "在职经理");
 
             // 2. 嵌套提取该经理部门底下的所有销售员工（作为子节点）
             for (const auto& subUser : allUsers) {
@@ -92,9 +93,9 @@ void AdminMainWindow::renderDepartmentTree()
 
                     // 将其挂载到刚才的 managerItem 下面，作为子节点隐藏起来
                     QTreeWidgetItem* salesItem = new QTreeWidgetItem(managerItem);
-                    salesItem->setText(0, "  Sales Staff: " + subUser.getUsername());
+                    salesItem->setText(0, "  销售: " + subUser.getUsername());
                     salesItem->setText(1, subUser.getUserId());
-                    salesItem->setText(2, subUser.isActive() ? "Active" : "Disabled");
+                    salesItem->setText(2, subUser.isActive() ? "在职" : "离职");
                 }
             }
         }
@@ -173,13 +174,13 @@ void AdminMainWindow::renderGlobalCustomers(const std::vector<Customer>& custome
 {
     m_customerTable->setRowCount(0);
     m_customerTable->setColumnCount(4);
-    m_customerTable->setHorizontalHeaderLabels({"Customer ID", "Customer Name", "Contact Phone", "Current Owner ID"});
+    m_customerTable->setHorizontalHeaderLabels({"客户ID", "客户姓名", "联系电话", "当前负责人"});
 
     for (size_t i = 0; i < customers.size(); ++i) {
         m_customerTable->insertRow(i);
         m_customerTable->setItem(i, 0, new QTableWidgetItem(customers[i].getId()));
         m_customerTable->setItem(i, 1, new QTableWidgetItem(customers[i].getName()));
         m_customerTable->setItem(i, 2, new QTableWidgetItem(customers[i].getPhone()));
-        m_customerTable->setItem(i, 3, new QTableWidgetItem(customers[i].getOwnerId().isEmpty() ? "Unassigned" : customers[i].getOwnerId()));
+        m_customerTable->setItem(i, 3, new QTableWidgetItem(customers[i].getOwnerId().isEmpty() ? "公海池" : customers[i].getOwnerId()));
     }
 }

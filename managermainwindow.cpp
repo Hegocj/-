@@ -1,4 +1,5 @@
 #include "ManagerMainWindow.h"
+#include "customerdetaildialog.h"
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QComboBox>
@@ -84,22 +85,28 @@ void ManagerMainWindow::executeSearch(const QString& key)
 // =========================================================================
 void ManagerMainWindow::executeRowModification(int row)
 {
-    // 1. 安全边界检查：确保点击的行在当前大表展示的缓存范围内
-    // 注意：请确保这里的缓存数组名字和你 ManagerMainWindow 里刷新大表时用的是同一个
-    if (row < 0 || row >= static_cast<int>(m_teamUsers.size())) return;
+    int currentMenuIndex = m_leftMenu->currentRow();
 
-    // 2. 抓取目标客户 ID
-    QString targetId = m_teamUsers[row].getUserId();
+    if (currentMenuIndex == 0) {
+        // 选中了"下属团队员工"菜单
+        if (row < 0 || row >= static_cast<int>(m_teamUsers.size())) return;
+        // 双击员工的话，暂时不做处理（可以根据需求扩展）
+        return;
+    } else {
+        // 选中了"团队客户总览"或"系统公海池"菜单
+        if (row < 0 || row >= static_cast<int>(m_displayedCustomers.size())) return;
 
-    // qDebug() << "经理触发双击，正在调取客户详情，ID:" << targetId; // 调试挡板
+        // 2. 抓取目标客户 ID
+        QString targetId = m_displayedCustomers[row].getId();
 
-    // 3.  毫无阻碍地拉起统一大弹窗
-    CustomerDetailDialog detailDlg(targetId, m_repo, m_currentUser, this);
+        // 3.  毫无阻碍地拉起统一大弹窗
+        CustomerDetailDialog detailDlg(targetId, m_repo, m_currentUser, this);
 
-    if (detailDlg.exec() == QDialog::Accepted) {
-        // 如果经理在里面修改了基础数据、改派了销售、或者把人踢回了公海
-        // 顺着当前高亮的左侧菜单原地刷新，让大表数据保持最新状态
-        refreshDataByMenu(m_leftMenu->currentRow());
+        if (detailDlg.exec() == QDialog::Accepted) {
+            // 如果经理在里面修改了基础数据、改派了销售、或者把人踢回了公海
+            // 顺着当前高亮的左侧菜单原地刷新，让大表数据保持最新状态
+            refreshDataByMenu(m_leftMenu->currentRow());
+        }
     }
 }
 
@@ -109,11 +116,11 @@ void ManagerMainWindow::executeRowModification(int row)
 bool ManagerMainWindow::allocateCustomerWithLoadBalancing(const QString& customerId)
 {
     QDialog dlg(this);
-    dlg.setWindowTitle("Manager Allocation Tool");
+    dlg.setWindowTitle("客户分配工具");
     dlg.setFixedWidth(380);
 
     QVBoxLayout* layout = new QVBoxLayout(&dlg);
-    layout->addWidget(new QLabel("Current sales load statistics (Balanced Allocation):", &dlg));
+    layout->addWidget(new QLabel("当前销售负载统计（负载均衡分配）：", &dlg));
 
     QComboBox* salesCombo = new QComboBox(&dlg);
 
@@ -211,7 +218,7 @@ void ManagerMainWindow::renderTeamUsers()
         m_customerTable->setItem(i, 2, new QTableWidgetItem(m_teamUsers[i].getDepartment()));
 
         // 判断账号状态：Active 或 Terminated
-        QString statusStr = m_teamUsers[i].isActive() ? "Active" : "Terminated";
+        QString statusStr = m_teamUsers[i].isActive() ? "在职" : "离职";
         QTableWidgetItem* statusItem = new QTableWidgetItem(statusStr);
 
         //停用账号的文字设置为红色，区分异常账号
@@ -240,7 +247,7 @@ void ManagerMainWindow::renderTeamUsers()
          m_customerTable->setItem(i, 2, new QTableWidgetItem(indicatedUsers[i].getDepartment()));
 
          // 判断账号状态：Active 或 Terminated
-         QString statusStr = indicatedUsers[i].isActive() ? "Active" : "Terminated";
+         QString statusStr = indicatedUsers[i].isActive() ? "在职" : "离职";
          QTableWidgetItem* statusItem = new QTableWidgetItem(statusStr);
 
          //停用账号的文字设置为红色，区分异常账号
@@ -266,7 +273,7 @@ void ManagerMainWindow::renderCustomers(const std::vector<Customer>& customers)
         m_customerTable->setItem(i, 2, new QTableWidgetItem(customers[i].getPhone()));
 
         QString owner = customers[i].getOwnerId();
-        QString ownerStr = owner.isEmpty() ? "Public Pool" : owner;
+        QString ownerStr = owner.isEmpty() ? "公海池" : owner;
         QTableWidgetItem* ownerItem = new QTableWidgetItem(ownerStr);
         if (owner.isEmpty()) {
             ownerItem->setForeground(QBrush(Qt::yellow));

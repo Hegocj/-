@@ -90,7 +90,7 @@ void LoginDialog::handleLoginSubmit() {
     QString password = ui->passwordEdit->text().trimmed();
 
     if (username.isEmpty() || password.isEmpty()) {
-        QMessageBox::warning(this, "Prompt", "Username or password cannot be empty.");
+        QMessageBox::warning(this, "提示", "用户名或密码不能为空。");
         return;
     }
 
@@ -117,14 +117,14 @@ void LoginDialog::handleLoginSubmit() {
             m_loggedInUser = authenticatedUser;
         }
 
-        qDebug() << "[Login Verified] Successfully retrieved full entity from Repository.";
+        qDebug() << "[登录验证] 成功从仓库获取完整实体。";
         qDebug() << " > ID:" << m_loggedInUser.getUserId();
-        qDebug() << " > Name:" << m_loggedInUser.getUsername();
-        qDebug() << " > Dept:" << m_loggedInUser.getDepartment();
-        qDebug() << " > Role Enum:" << static_cast<int>(m_loggedInUser.getRole()); // 此时必然是真实的 Manager 2 或 Admin 3
+        qDebug() << " > 姓名:" << m_loggedInUser.getUsername();
+        qDebug() << " > 部门:" << m_loggedInUser.getDepartment();
+        qDebug() << " > 角色枚举:" << static_cast<int>(m_loggedInUser.getRole()); // 此时必然是真实的 Manager 2 或 Admin 3
 
         accept(); // 返回 QDialog::Accepted，通知 main.cpp 启动分支分流
     } else {
-        QMessageBox::warning(this, "Login Failed", "Invalid username or password.");
+        QMessageBox::warning(this, "登录失败", "用户名或密码无效。");
     }
 }
