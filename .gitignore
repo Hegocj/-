@@ -1,0 +1,28 @@
+# C++ 编译产物
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# CMake 临时文件与生成目录
+build/
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+
+# Qt Creator 个人配置文件
+.qtcreator/
+*.user
+*.user.*
+
+# 操作系统临时文件
+.DS_Store
+Thumbs.db
