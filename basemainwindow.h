@@ -33,6 +33,9 @@ public:
 
     void bootstrapMainWindow();
 
+signals:
+    void logoutRequested();
+
 protected:
     // =========================================================================
     //  Sandbox 空间套娃架构核心隔离逻辑
@@ -90,6 +93,7 @@ protected:
     QTableWidget* m_customerTable = nullptr;
     QPushButton* m_importBtn = nullptr;
     QPushButton* m_exportBtn = nullptr;
+    QPushButton* m_logoutBtn = nullptr;
 
 private:
     Ui::MainWindow *ui;

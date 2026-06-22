@@ -17,7 +17,9 @@ public:
     // 身份认证与用户管理
     bool checkLogin(const QString& username, const QString& password, User& outUser) override;
     std::vector<User> getAllUsers() override;
+    bool saveUser(const User& user, const QString& password = QString()) override;
     bool updateUser(const User& user) override;
+    bool updateUserPassword(const QString& userId, const QString& password) override;
 
     // 客户数据 CRUD
     std::vector<Customer> getAllCustomers() override;
@@ -44,7 +46,6 @@ private:
     User userFromQuery(const QSqlQuery& query);
     Customer customerFromQuery(const QSqlQuery& query);
     FollowRecord followRecordFromQuery(const QSqlQuery& query);
-    QString hashPassword(const QString& password);
 
     QSqlDatabase m_db;
     bool m_initialized;

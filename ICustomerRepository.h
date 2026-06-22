@@ -50,6 +50,7 @@ public:
      * @note 用于管理员界面下拉菜单的数据填充，如选择交接人、选择分配团队的销售等
      */
     virtual std::vector<User> getAllUsers() = 0;
+    virtual bool saveUser(const User& user, const QString& password = QString()) = 0;
 
     /**
      * @brief 修改员工信息/权限
@@ -57,6 +58,7 @@ public:
      * @return 是否修改成功（内部执行 UPDATE user 表）
      */
     virtual bool updateUser(const User& user) = 0;
+    virtual bool updateUserPassword(const QString& userId, const QString& password) = 0;
 
 
     // ==========================================

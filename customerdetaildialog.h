@@ -49,7 +49,7 @@ private:
     QLineEdit* m_idEdit;
     QLineEdit* m_nameEdit;
     QLineEdit* m_phoneEdit;
-    QLineEdit* m_levelEdit;
+    QComboBox* m_levelCombo;
 
     // 关键改变：负责人变成下拉框，经理可双击或点击直接修改销售
     QComboBox* m_ownerCombo;

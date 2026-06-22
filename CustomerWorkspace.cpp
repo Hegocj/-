@@ -1,13 +1,15 @@
 #include "CustomerWorkspace.h"
 
 #include <QAbstractItemView>
+#include <QBrush>
+#include <QColor>
+#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QVBoxLayout>
-#include <QHBoxLayout>
 
 CustomerWorkspace::CustomerWorkspace(CustomerController* controller, QWidget* parent)
     : QWidget(parent)
@@ -17,8 +19,8 @@ CustomerWorkspace::CustomerWorkspace(CustomerController* controller, QWidget* pa
     auto* toolbarLayout = new QHBoxLayout();
 
     m_searchEdit = new QLineEdit(this);
-    m_searchEdit->setPlaceholderText(QStringLiteral("搜索客户姓名或电话"));
-    m_refreshButton = new QPushButton(QStringLiteral("刷新"), this);
+    m_searchEdit->setPlaceholderText(QStringLiteral("\u641c\u7d22\u5ba2\u6237\u59d3\u540d\u6216\u7535\u8bdd"));
+    m_refreshButton = new QPushButton(QStringLiteral("\u5237\u65b0"), this);
     toolbarLayout->addWidget(m_searchEdit, 1);
     toolbarLayout->addWidget(m_refreshButton);
     rootLayout->addLayout(toolbarLayout);
@@ -26,12 +28,12 @@ CustomerWorkspace::CustomerWorkspace(CustomerController* controller, QWidget* pa
     m_customerTable = new QTableWidget(this);
     m_customerTable->setColumnCount(6);
     m_customerTable->setHorizontalHeaderLabels({
-        QStringLiteral("客户编号"),
-        QStringLiteral("客户姓名"),
-        QStringLiteral("联系电话"),
-        QStringLiteral("客户等级"),
-        QStringLiteral("最后跟进时间"),
-        QStringLiteral("所属销售ID")
+        QStringLiteral("\u5ba2\u6237\u7f16\u53f7"),
+        QStringLiteral("\u5ba2\u6237\u59d3\u540d"),
+        QStringLiteral("\u8054\u7cfb\u7535\u8bdd"),
+        QStringLiteral("\u5ba2\u6237\u7b49\u7ea7"),
+        QStringLiteral("\u6700\u540e\u8ddf\u8fdb\u65f6\u95f4"),
+        QStringLiteral("\u6240\u5c5e\u9500\u552eID")
     });
     m_customerTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_customerTable->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -59,12 +61,29 @@ void CustomerWorkspace::renderCustomers(const std::vector<Customer>& customers)
     for (int row = 0; row < static_cast<int>(m_customers.size()); ++row) {
         const auto& customer = m_customers.at(static_cast<size_t>(row));
         m_customerTable->insertRow(row);
-        m_customerTable->setItem(row, 0, new QTableWidgetItem(customer.getId()));
-        m_customerTable->setItem(row, 1, new QTableWidgetItem(customer.getName()));
-        m_customerTable->setItem(row, 2, new QTableWidgetItem(customer.getPhone()));
-        m_customerTable->setItem(row, 3, new QTableWidgetItem(customer.getLevel()));
-        m_customerTable->setItem(row, 4, new QTableWidgetItem(customer.getLastFollowTime().toString(QStringLiteral("yyyy-MM-dd HH:mm"))));
-        m_customerTable->setItem(row, 5, new QTableWidgetItem(customer.getOwnerId()));
+        const bool isVip = customer.getLevel().compare(QStringLiteral("VIP"), Qt::CaseInsensitive) == 0;
+        auto* idItem = new QTableWidgetItem(customer.getId());
+        auto* nameItem = new QTableWidgetItem(isVip
+                                                  ? QStringLiteral("[VIP] %1").arg(customer.getName())
+                                                  : customer.getName());
+        auto* phoneItem = new QTableWidgetItem(customer.getPhone());
+        auto* levelItem = new QTableWidgetItem(isVip ? QStringLiteral("VIP") : QStringLiteral("\u666e\u901a"));
+        auto* followItem = new QTableWidgetItem(customer.getLastFollowTime().toString(QStringLiteral("yyyy-MM-dd HH:mm")));
+        auto* ownerItem = new QTableWidgetItem(customer.getOwnerId());
+        if (isVip) {
+            const QBrush vipBrush(QColor(255, 245, 210));
+            for (auto* item : {idItem, nameItem, phoneItem, levelItem, followItem, ownerItem}) {
+                item->setBackground(vipBrush);
+                item->setForeground(QBrush(QColor(128, 78, 0)));
+            }
+            levelItem->setToolTip(QStringLiteral("VIP\u5ba2\u6237\uff0c\u5df2\u7f6e\u9876\u663e\u793a"));
+        }
+        m_customerTable->setItem(row, 0, idItem);
+        m_customerTable->setItem(row, 1, nameItem);
+        m_customerTable->setItem(row, 2, phoneItem);
+        m_customerTable->setItem(row, 3, levelItem);
+        m_customerTable->setItem(row, 4, followItem);
+        m_customerTable->setItem(row, 5, ownerItem);
     }
 }
 

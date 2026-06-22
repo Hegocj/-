@@ -1,13 +1,14 @@
 #include "customerdetaildialog.h"
 #include "followtimelinedialog.h"
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QFormLayout>
-#include <QLineEdit>
+
 #include <QComboBox>
-#include <QPushButton>
-#include <QMessageBox>
 #include <QDateTime>
+#include <QFormLayout>
+#include <QHBoxLayout>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QVBoxLayout>
 
 CustomerDetailDialog::CustomerDetailDialog(const QString& customerId,
                                            std::shared_ptr<ICustomerRepository> repo,
@@ -18,230 +19,207 @@ CustomerDetailDialog::CustomerDetailDialog(const QString& customerId,
     , m_repo(repo)
     , m_currentUser(currentUser)
 {
-    setWindowTitle("客户详情");
+    setWindowTitle(QStringLiteral("\u5ba2\u6237\u8be6\u60c5"));
     resize(420, 340);
 
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    QFormLayout* formLayout = new QFormLayout();
+    auto* mainLayout = new QVBoxLayout(this);
+    auto* formLayout = new QFormLayout();
 
-    // 1. 初始化全量表单
-    m_idEdit = new QLineEdit(this);    m_idEdit->setReadOnly(true); // 任何人都不能改 ID
+    m_idEdit = new QLineEdit(this);
+    m_idEdit->setReadOnly(true);
     m_nameEdit = new QLineEdit(this);
     m_phoneEdit = new QLineEdit(this);
-    m_levelEdit = new QLineEdit(this);
-
-    // 负责人直接采用 ComboBox 承载
+    m_levelCombo = new QComboBox(this);
+    m_levelCombo->addItem(QStringLiteral("\u666e\u901a"));
+    m_levelCombo->addItem(QStringLiteral("VIP"));
     m_ownerCombo = new QComboBox(this);
 
-    formLayout->addRow("客户ID:", m_idEdit);
-    formLayout->addRow("客户姓名:", m_nameEdit);
-    formLayout->addRow("联系电话:", m_phoneEdit);
-    formLayout->addRow("客户等级:", m_levelEdit);
-    formLayout->addRow("负责销售:", m_ownerCombo);
+    formLayout->addRow(QStringLiteral("\u5ba2\u6237ID:"), m_idEdit);
+    formLayout->addRow(QStringLiteral("\u5ba2\u6237\u59d3\u540d:"), m_nameEdit);
+    formLayout->addRow(QStringLiteral("\u8054\u7cfb\u7535\u8bdd:"), m_phoneEdit);
+    formLayout->addRow(QStringLiteral("\u5ba2\u6237\u7b49\u7ea7:"), m_levelCombo);
+    formLayout->addRow(QStringLiteral("\u8d1f\u8d23\u9500\u552e:"), m_ownerCombo);
     mainLayout->addLayout(formLayout);
 
-    // 2. 注入核心高能"跟进信息"按钮
-    m_followBtn = new QPushButton("查看和添加跟进记录", this);
+    m_followBtn = new QPushButton(QStringLiteral("\u67e5\u770b\u548c\u6dfb\u52a0\u8ddf\u8fdb\u8bb0\u5f55"), this);
     mainLayout->addWidget(m_followBtn);
 
-    mainLayout->addSpacing(10);
-
-    // 3. 动态拓展功能按钮栏（认领、放逐特权）
-    QHBoxLayout* featureLayout = new QHBoxLayout();
-    m_claimBtn = new QPushButton("认领客户", this);
-    m_evictBtn = new QPushButton("释放到公海池", this);
-    m_claimBtn->hide(); // 默认先隐藏，靠权限判定决定是否亮起
+    auto* featureLayout = new QHBoxLayout();
+    m_claimBtn = new QPushButton(QStringLiteral("\u8ba4\u9886\u5ba2\u6237"), this);
+    m_evictBtn = new QPushButton(QStringLiteral("\u91ca\u653e\u5230\u516c\u6d77\u6c60"), this);
+    m_deleteBtn = new QPushButton(QStringLiteral("\u5220\u9664\u5ba2\u6237"), this);
+    m_deleteBtn->setStyleSheet(QStringLiteral("QPushButton { background-color: #d9534f; color: white; font-weight: bold; padding: 6px; }"));
+    m_claimBtn->hide();
     m_evictBtn->hide();
+    if (m_currentUser.getRole() != UserRole::Admin) {
+        m_deleteBtn->hide();
+    }
     featureLayout->addWidget(m_claimBtn);
     featureLayout->addWidget(m_evictBtn);
+    featureLayout->addWidget(m_deleteBtn);
     mainLayout->addLayout(featureLayout);
 
-    m_deleteBtn = new QPushButton("彻底销毁客户资产", this);
-    m_deleteBtn->setStyleSheet("QPushButton { background-color: #d9534f; color: white; font-weight: bold; padding: 6px; }");
-
-    if (m_currentUser.getRole() != UserRole::Admin) {
-        m_deleteBtn->setVisible(false); // 经理和销售都看不见
-    }
-    featureLayout->addWidget(m_deleteBtn);
-
-    // 4. 标准底座按钮（保存/取消）
-    QHBoxLayout* bottomLayout = new QHBoxLayout();
-    m_saveBtn = new QPushButton("保存", this);
-    m_cancelBtn = new QPushButton("取消", this);
+    auto* bottomLayout = new QHBoxLayout();
+    m_saveBtn = new QPushButton(QStringLiteral("\u4fdd\u5b58"), this);
+    m_cancelBtn = new QPushButton(QStringLiteral("\u53d6\u6d88"), this);
     bottomLayout->addWidget(m_saveBtn);
     bottomLayout->addWidget(m_cancelBtn);
     mainLayout->addLayout(bottomLayout);
 
-    // 信号绑定
     connect(m_cancelBtn, &QPushButton::clicked, this, &QDialog::reject);
     connect(m_followBtn, &QPushButton::clicked, this, &CustomerDetailDialog::openFollowTimeline);
     connect(m_saveBtn, &QPushButton::clicked, this, &CustomerDetailDialog::handleSaveOrCommit);
     connect(m_claimBtn, &QPushButton::clicked, this, &CustomerDetailDialog::handleClaimAction);
     connect(m_evictBtn, &QPushButton::clicked, this, &CustomerDetailDialog::handleEvictAction);
-    connect(m_deleteBtn, &QPushButton::clicked, this, [this](){
-        auto button = QMessageBox::critical(this, "警报", "确定要彻底删除该客户吗？", QMessageBox::Yes | QMessageBox::No);
+    connect(m_deleteBtn, &QPushButton::clicked, this, [this]() {
+        const auto button = QMessageBox::critical(
+            this,
+            QStringLiteral("\u8b66\u544a"),
+            QStringLiteral("\u786e\u5b9a\u8981\u5220\u9664\u8be5\u5ba2\u6237\u5417\uff1f"),
+            QMessageBox::Yes | QMessageBox::No
+        );
         if (button == QMessageBox::Yes) {
             m_repo->deleteCustomer(m_customerId);
-            QMessageBox::information(this, "成功", "客户数据已彻底清除。");
+            QMessageBox::information(this,
+                                     QStringLiteral("\u6210\u529f"),
+                                     QStringLiteral("\u5ba2\u6237\u6570\u636e\u5df2\u5220\u9664\u3002"));
             accept();
         }
     });
 
-    // 5. 加载数据并实施严密的动态权限压制
     loadCustomerAndSetupPrivilege();
 }
 
 void CustomerDetailDialog::loadCustomerAndSetupPrivilege()
 {
-    // A. 从数据仓库中提取客户完整实体
-    for (const auto& c : m_repo->getAllCustomers()) {
-        if (c.getId() == m_customerId) {
-            m_customer = c;
+    for (const auto& customer : m_repo->getAllCustomers()) {
+        if (customer.getId() == m_customerId) {
+            m_customer = customer;
             break;
         }
     }
 
-    // 100% 保证信息在所有界面都完整显示出来
     m_idEdit->setText(m_customer.getId());
     m_nameEdit->setText(m_customer.getName());
     m_phoneEdit->setText(m_customer.getPhone());
-    m_levelEdit->setText(m_customer.getLevel());
+    const int levelIndex = m_levelCombo->findText(m_customer.getLevel(), Qt::MatchFixedString);
+    m_levelCombo->setCurrentIndex(levelIndex >= 0 ? levelIndex : 0);
 
-    QString ownerId = m_customer.getOwnerId();
+    const QString ownerId = m_customer.getOwnerId();
 
-    // =========================================================================
-    //  动态权限矩阵重构：改用 setReadOnly 实现“可见不可改”
-    // =========================================================================
     if (m_currentUser.getRole() == UserRole::Sales) {
-
-        // 【销售角色判定】
-        m_ownerCombo->addItem(ownerId.isEmpty() ? "[None - Public Sea]" : ownerId);
-        m_ownerCombo->setEnabled(false); // 销售无法更改负责人下拉框
+        m_ownerCombo->addItem(ownerId.isEmpty() ? QStringLiteral("\u516c\u6d77\u6c60") : ownerId, ownerId);
+        m_ownerCombo->setEnabled(false);
 
         if (ownerId.isEmpty()) {
-            // 场景 1：销售在【系统公海】双击打开客户
-            //  核心修正：全部显示出来，但全部设为只读模式
             m_nameEdit->setReadOnly(true);
             m_phoneEdit->setReadOnly(true);
-            m_levelEdit->setReadOnly(true);
-
-            m_followBtn->setEnabled(false); // 未认领前禁止追加跟进
-            m_saveBtn->hide();             // 公海池里不需要显示 Save 按钮
-            m_claimBtn->show();            // 亮出[认领]特权按钮
-        }
-        else if (ownerId == m_currentUser.getUserId()) {
-            // 场景 2：销售在【我的客户】私海中打开客户
-            m_nameEdit->setReadOnly(true);  // 姓名可见，但不能修改
-            m_levelEdit->setReadOnly(true); // 级别可见，但不能修改
-
-            m_phoneEdit->setReadOnly(false); //  只有电话解锁只读，销售可以任意修改！
-            m_followBtn->setEnabled(true);   //  允许点击查看和追加跟进信息
+            m_levelCombo->setEnabled(false);
+            m_followBtn->setEnabled(false);
+            m_saveBtn->hide();
+            m_claimBtn->show();
+        } else if (ownerId == m_currentUser.getUserId()) {
+            m_nameEdit->setReadOnly(true);
+            m_levelCombo->setEnabled(false);
+            m_phoneEdit->setReadOnly(false);
+            m_followBtn->setEnabled(true);
             m_saveBtn->show();
-            m_claimBtn->hide();
-        }
-        else {
-            // 场景 3：极其罕见的防越权安全垫底（看到了别人的客户）
+        } else {
             m_nameEdit->setReadOnly(true);
             m_phoneEdit->setReadOnly(true);
-            m_levelEdit->setReadOnly(true);
+            m_levelCombo->setEnabled(false);
             m_followBtn->setEnabled(false);
             m_saveBtn->hide();
         }
+        return;
     }
-    else if (m_currentUser.getRole() == UserRole::Manager || m_currentUser.getRole() == UserRole::Admin) {
 
-        // 【经理 / 管理员特权】：全字段可读写
-        m_nameEdit->setReadOnly(false);
-        m_phoneEdit->setReadOnly(false);
-        m_levelEdit->setReadOnly(false);
-        m_followBtn->setEnabled(true);
-        m_saveBtn->show();
+    m_nameEdit->setReadOnly(false);
+    m_phoneEdit->setReadOnly(false);
+    m_levelCombo->setEnabled(true);
+    m_followBtn->setEnabled(true);
+    m_saveBtn->show();
+    populateSalesCombo();
+    m_ownerCombo->setEnabled(true);
 
-        // 经理专属：洗出旗下销售班底，下拉框完全可用，双击/点击即可一键改派销售
-        populateSalesCombo();
-        m_ownerCombo->setEnabled(true);
-
-        if (!ownerId.isEmpty()) {
-            m_evictBtn->show(); // 只有非公海客户，经理才显示“放逐公海”按钮
-        }
+    if (!ownerId.isEmpty()) {
+        m_evictBtn->show();
     }
 }
 
 void CustomerDetailDialog::populateSalesCombo()
 {
     m_ownerCombo->clear();
-    m_ownerCombo->addItem("[Unassigned / High Sea]", "");
+    m_ownerCombo->addItem(QStringLiteral("\u516c\u6d77\u6c60"), QString());
 
-    // 捞出全库用户
-    std::vector<User> users = m_repo->getAllUsers();
     int targetIndex = 0;
     int currentIndex = 1;
-
-    for (const auto& u : users) {
-        // 如果是管理员，能看到全场所有销售；如果是经理，能看到和自己同属于一个部门的销售
-        bool visible = (m_currentUser.getRole() == UserRole::Admin) ||
-                       (u.getRole() == UserRole::Sales && u.getDepartment() == m_currentUser.getDepartment());
-
-        if (visible && u.getRole() == UserRole::Sales) {
-            // 利用 asprintf 避开 Clazy 警告，规范输出
-            QString txt = QString::asprintf("%s (ID: %s)", u.getUsername().toUtf8().constData(), u.getUserId().toUtf8().constData());
-            m_ownerCombo->addItem(txt, u.getUserId());
-
-            if (u.getUserId() == m_customer.getOwnerId()) {
-                targetIndex = currentIndex; // 锁定制导高亮行
+    for (const auto& user : m_repo->getAllUsers()) {
+        const bool visible = (m_currentUser.getRole() == UserRole::Admin) ||
+                             (user.getDepartment() == m_currentUser.getDepartment());
+        if (visible && user.getRole() == UserRole::Sales && user.isActive()) {
+            m_ownerCombo->addItem(QStringLiteral("%1 (ID: %2)").arg(user.getUsername(), user.getUserId()), user.getUserId());
+            if (user.getUserId() == m_customer.getOwnerId()) {
+                targetIndex = currentIndex;
             }
-            currentIndex++;
+            ++currentIndex;
         }
     }
     m_ownerCombo->setCurrentIndex(targetIndex);
 }
 
-// =========================================================================
-//  3. 业务动作落地
-// =========================================================================
-
 void CustomerDetailDialog::handleSaveOrCommit()
 {
-    // 回写字段
     m_customer.setName(m_nameEdit->text().trimmed());
     m_customer.setPhone(m_phoneEdit->text().trimmed());
-    m_customer.setLevel(m_levelEdit->text().trimmed());
+    m_customer.setLevel(m_levelCombo->currentText());
 
-    // 如果当前是经理，回写改派后的负责人 ID
     if (m_currentUser.getRole() == UserRole::Manager || m_currentUser.getRole() == UserRole::Admin) {
         m_customer.setOwnerId(m_ownerCombo->currentData().toString());
     }
 
     if (m_repo->saveCustomer(m_customer)) {
-        QMessageBox::information(this, "提示", "客户信息保存成功！");
+        QMessageBox::information(this,
+                                 QStringLiteral("\u63d0\u793a"),
+                                 QStringLiteral("\u5ba2\u6237\u4fe1\u606f\u4fdd\u5b58\u6210\u529f\u3002"));
         accept();
     } else {
-        QMessageBox::critical(this, "错误", "保存失败！");
+        QMessageBox::critical(this,
+                              QStringLiteral("\u9519\u8bef"),
+                              QStringLiteral("\u4fdd\u5b58\u5931\u8d25\u3002"));
     }
 }
 
 void CustomerDetailDialog::handleClaimAction()
 {
-    // 公海池直通认领
     if (m_repo->claimCustomer(m_customer.getId(), m_currentUser.getUserId())) {
-        QMessageBox::information(this, "成功", "客户认领成功！");
+        QMessageBox::information(this,
+                                 QStringLiteral("\u6210\u529f"),
+                                 QStringLiteral("\u5ba2\u6237\u8ba4\u9886\u6210\u529f\u3002"));
         accept();
     } else {
-        QMessageBox::warning(this, "失败", "认领失败，可能客户已被其他人认领！");
+        QMessageBox::warning(this,
+                             QStringLiteral("\u5931\u8d25"),
+                             QStringLiteral("\u8ba4\u9886\u5931\u8d25\uff0c\u53ef\u80fd\u5ba2\u6237\u5df2\u88ab\u5176\u4ed6\u4eba\u8ba4\u9886\u3002"));
         reject();
     }
 }
 
 void CustomerDetailDialog::handleEvictAction()
 {
-    // 经理一键剥离，负责人强行刷空置回公海
-    auto reply = QMessageBox::question(this, "确认释放",
-                                       "确定要将该客户释放到公海池吗？",
-                                       QMessageBox::Yes | QMessageBox::No);
+    const auto reply = QMessageBox::question(
+        this,
+        QStringLiteral("\u786e\u8ba4\u91ca\u653e"),
+        QStringLiteral("\u786e\u5b9a\u8981\u5c06\u8be5\u5ba2\u6237\u91ca\u653e\u5230\u516c\u6d77\u6c60\u5417\uff1f"),
+        QMessageBox::Yes | QMessageBox::No
+    );
+
     if (reply == QMessageBox::Yes) {
-        m_customer.setOwnerId(""); // 清空负责人
+        m_customer.setOwnerId(QString());
         if (m_repo->saveCustomer(m_customer)) {
-            QMessageBox::information(this, "成功", "客户已释放到公海池！");
+            QMessageBox::information(this,
+                                     QStringLiteral("\u6210\u529f"),
+                                     QStringLiteral("\u5ba2\u6237\u5df2\u91ca\u653e\u5230\u516c\u6d77\u6c60\u3002"));
             accept();
         }
     }
@@ -249,7 +227,6 @@ void CustomerDetailDialog::handleEvictAction()
 
 void CustomerDetailDialog::openFollowTimeline()
 {
-    // 打开时间轴细节舱
     FollowTimelineDialog timelineDlg(m_customerId, m_repo, m_currentUser, this);
     timelineDlg.exec();
 }
