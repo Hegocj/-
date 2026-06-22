@@ -1,5 +1,7 @@
 #include "ManagerMainWindow.h"
 #include "customerdetaildialog.h"
+#include"userdetaildialog.h"
+
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QComboBox>
@@ -7,6 +9,11 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QDateTime>
+#include <QFileDialog>
+#include <QTextStream>
+#include <QFile>
+#include<QMenu>
+#include <fstream>
 
 ManagerMainWindow::ManagerMainWindow(std::shared_ptr<ICustomerRepository> repo, const User& user, QWidget *parent)
     : BaseMainWindow(repo, user, parent)
@@ -66,7 +73,8 @@ void ManagerMainWindow::executeSearch(const QString& key)
     if (m_leftMenu->currentRow() == 0) {
         std::vector<User> filteredUsers;
         for (const auto& u : m_repo->getAllUsers()) {
-            if (u.getDepartment() == m_currentUser.getDepartment() &&
+        if (u.getDepartment() == m_currentUser.getDepartment() &&
+                u.isActive() &&
                 (u.getUsername().contains(key) || u.getUserId().contains(key))) {
                 filteredUsers.push_back(u);
             }
@@ -88,24 +96,39 @@ void ManagerMainWindow::executeRowModification(int row)
     int currentMenuIndex = m_leftMenu->currentRow();
 
     if (currentMenuIndex == 0) {
-        // 选中了"下属团队员工"菜单
+        // =========================================================================
+        // 选中了"下属团队员工"菜单（经理/管理员双击员工行）
+        // =========================================================================
         if (row < 0 || row >= static_cast<int>(m_teamUsers.size())) return;
-        // 双击员工的话，暂时不做处理（可以根据需求扩展）
-        return;
+
+        // 1. 抓取目标员工 ID
+        QString targetUserId = m_teamUsers[row].getUserId();
+
+        // 2. 华丽地拉起员工大统一全功能详情舱
+        // 传入当前登录人 m_currentUser，弹窗内部会自动判定他是 Manager 还是 Admin，从而开放离职移交特权
+        UserDetailDialog userDlg(targetUserId, m_repo, m_currentUser, this);
+
+        if (userDlg.exec() == QDialog::Accepted) {
+            // 如果在弹窗里成功办理了离职移交，返回后原地刷新员工大表
+            refreshDataByMenu(currentMenuIndex);
+        }
+
     } else {
-        // 选中了"团队客户总览"或"系统公海池"菜单
+        // =========================================================================
+        // 选中了"团队客户总览"或"系统公海池"菜单（保持你原有的高能逻辑）
+        // =========================================================================
         if (row < 0 || row >= static_cast<int>(m_displayedCustomers.size())) return;
 
         // 2. 抓取目标客户 ID
         QString targetId = m_displayedCustomers[row].getId();
 
-        // 3.  毫无阻碍地拉起统一大弹窗
+        // 3. 毫无阻碍地拉起统一客户大弹窗
         CustomerDetailDialog detailDlg(targetId, m_repo, m_currentUser, this);
 
         if (detailDlg.exec() == QDialog::Accepted) {
-            // 如果经理在里面修改了基础数据、改派了销售、或者把人踢回了公海
+            // 如果经理/管理员在里面修改了基础数据、改派了销售、或者把人踢回了公海
             // 顺着当前高亮的左侧菜单原地刷新，让大表数据保持最新状态
-            refreshDataByMenu(m_leftMenu->currentRow());
+            refreshDataByMenu(currentMenuIndex);
         }
     }
 }
@@ -203,7 +226,9 @@ void ManagerMainWindow::renderTeamUsers()
     m_teamUsers.clear();
 
     for (const auto& u : allUsers) {
-        if (u.getDepartment() == m_currentUser.getDepartment()&&u.getRole()!= UserRole::Admin) {
+        if (u.getDepartment() == m_currentUser.getDepartment() &&
+                u.isActive() &&
+                u.getRole() != UserRole::Admin) {
             m_teamUsers.push_back(u);
         }
     }

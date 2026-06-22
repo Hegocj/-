@@ -60,6 +60,7 @@ private:
     QPushButton* m_evictBtn;    // 踢回公海按钮（经理/管理员特权）
     QPushButton* m_saveBtn;     // 保存
     QPushButton* m_cancelBtn;   // 取消
+    QPushButton* m_deleteBtn;   // 删除
 };
 
 #endif // CUSTOMERDETAILDIALOG_H

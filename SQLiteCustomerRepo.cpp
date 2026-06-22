@@ -1,4 +1,5 @@
 #include "SQLiteCustomerRepo.h"
+#include "DatabaseManager.h"
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QDateTime>
@@ -16,18 +17,11 @@ SQLiteCustomerRepo::~SQLiteCustomerRepo()
 
 bool SQLiteCustomerRepo::initializeDatabase(const QString& dbPath)
 {
-    if (m_db.isOpen()) {
-        closeDatabase();
-    }
-
-    m_db = QSqlDatabase::addDatabase("QSQLITE");
-    m_db.setDatabaseName(dbPath);
-
-    if (!m_db.open()) {
-        qDebug() << "Database open error:" << m_db.lastError();
+    if (!DatabaseManager::instance().open(dbPath)) {
         return false;
     }
 
+    m_db = DatabaseManager::instance().database();
     if (!createTables()) {
         return false;
     }
@@ -42,9 +36,8 @@ bool SQLiteCustomerRepo::initializeDatabase(const QString& dbPath)
 
 void SQLiteCustomerRepo::closeDatabase()
 {
-    if (m_db.isOpen()) {
-        m_db.close();
-    }
+    m_db = QSqlDatabase();
+    DatabaseManager::instance().close();
 }
 
 bool SQLiteCustomerRepo::createTables()
@@ -338,7 +331,7 @@ std::vector<Customer> SQLiteCustomerRepo::getCustomersByDepartment(const QString
     query.prepare(R"(
         SELECT DISTINCT c.* FROM customer c
         LEFT JOIN user u ON c.owner_id = u.id
-        WHERE u.department = ? AND c.owner_id != ''
+        WHERE u.department = ? AND c.owner_id IS NOT NULL AND c.owner_id != ''
     )");
     query.addBindValue(department);
 
@@ -357,10 +350,10 @@ std::vector<Customer> SQLiteCustomerRepo::searchCustomers(const QString& keyword
     QString sql = "SELECT DISTINCT c.* FROM customer c ";
     
     if (currentUser.getRole() == UserRole::Sales) {
-        sql += "WHERE (c.owner_id = ? OR c.owner_id = '') AND ";
+        sql += "WHERE (c.owner_id = ? OR c.owner_id = '' OR c.owner_id IS NULL) AND ";
     } else if (currentUser.getRole() == UserRole::Manager) {
         sql += "LEFT JOIN user u ON c.owner_id = u.id ";
-        sql += "WHERE (c.owner_id = '' OR u.department = ?) AND ";
+        sql += "WHERE (c.owner_id = '' OR c.owner_id IS NULL OR u.department = ?) AND ";
     } else {
         sql += "WHERE ";
     }
@@ -405,10 +398,27 @@ bool SQLiteCustomerRepo::saveCustomer(const Customer& customer)
 
 bool SQLiteCustomerRepo::deleteCustomer(const QString& customerId)
 {
+    DatabaseManager& databaseManager = DatabaseManager::instance();
+    if (!databaseManager.beginTransaction()) {
+        return false;
+    }
+
     QSqlQuery query(m_db);
+    query.prepare("DELETE FROM follow_record WHERE customer_id = ?");
+    query.addBindValue(customerId);
+    if (!query.exec()) {
+        databaseManager.rollbackTransaction();
+        return false;
+    }
+
     query.prepare("DELETE FROM customer WHERE id = ?");
     query.addBindValue(customerId);
-    return query.exec();
+    if (!query.exec()) {
+        databaseManager.rollbackTransaction();
+        return false;
+    }
+
+    return databaseManager.commitTransaction();
 }
 
 std::vector<FollowRecord> SQLiteCustomerRepo::getFollowRecords(const QString& customerId)
@@ -453,17 +463,27 @@ bool SQLiteCustomerRepo::assignSalesToDepartment(const QString& salesId, const Q
 
 bool SQLiteCustomerRepo::transferCustomers(const QString& fromSalesId, const QString& toSalesId)
 {
+    DatabaseManager& databaseManager = DatabaseManager::instance();
+    if (!databaseManager.beginTransaction()) {
+        return false;
+    }
+
     QSqlQuery query(m_db);
     query.prepare("UPDATE customer SET owner_id = ? WHERE owner_id = ?");
     query.addBindValue(toSalesId);
     query.addBindValue(fromSalesId);
-    return query.exec();
+    if (!query.exec()) {
+        databaseManager.rollbackTransaction();
+        return false;
+    }
+
+    return databaseManager.commitTransaction();
 }
 
 std::vector<Customer> SQLiteCustomerRepo::getHighSeasCustomers()
 {
     std::vector<Customer> customers;
-    QSqlQuery query("SELECT * FROM customer WHERE owner_id = ''", m_db);
+    QSqlQuery query("SELECT * FROM customer WHERE owner_id = '' OR owner_id IS NULL", m_db);
 
     while (query.next()) {
         customers.push_back(customerFromQuery(query));
@@ -474,7 +494,7 @@ std::vector<Customer> SQLiteCustomerRepo::getHighSeasCustomers()
 bool SQLiteCustomerRepo::claimCustomer(const QString& customerId, const QString& salesId)
 {
     QSqlQuery query(m_db);
-    query.prepare("UPDATE customer SET owner_id = ? WHERE id = ? AND owner_id = ''");
+    query.prepare("UPDATE customer SET owner_id = ? WHERE id = ? AND (owner_id = '' OR owner_id IS NULL)");
     query.addBindValue(salesId);
     query.addBindValue(customerId);
     return query.exec();

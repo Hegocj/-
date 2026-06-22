@@ -28,6 +28,9 @@ protected:
     void refreshDataByMenu(int index) override;       // 根据选择维度切换大表或树状图
     void executeSearch(const QString& key) override;  // 内存级全局模糊搜索（支持树节点过滤）
     void executeRowModification(int row) override;    // 双击具体的客户行或选中的销售树节点
+    
+private slots:
+    void onTreeItemDoubleClicked(QTreeWidgetItem* item, int column); // 树状视图双击事件
 
 private:
     // =========================================================================
@@ -35,6 +38,7 @@ private:
     // =========================================================================
     void renderDepartmentTree();                      // 构建带 > 箭头的 经理->销售 两级树状组织
     void renderGlobalCustomers(const std::vector<Customer>& customers); // 渲染标准客户表
+    
 
 private:
     // 客户大盘数据缓存，用于绝对安全的行号映射

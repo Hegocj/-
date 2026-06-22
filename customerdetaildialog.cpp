@@ -56,6 +56,14 @@ CustomerDetailDialog::CustomerDetailDialog(const QString& customerId,
     featureLayout->addWidget(m_evictBtn);
     mainLayout->addLayout(featureLayout);
 
+    m_deleteBtn = new QPushButton("彻底销毁客户资产", this);
+    m_deleteBtn->setStyleSheet("QPushButton { background-color: #d9534f; color: white; font-weight: bold; padding: 6px; }");
+
+    if (m_currentUser.getRole() != UserRole::Admin) {
+        m_deleteBtn->setVisible(false); // 经理和销售都看不见
+    }
+    featureLayout->addWidget(m_deleteBtn);
+
     // 4. 标准底座按钮（保存/取消）
     QHBoxLayout* bottomLayout = new QHBoxLayout();
     m_saveBtn = new QPushButton("保存", this);
@@ -70,6 +78,14 @@ CustomerDetailDialog::CustomerDetailDialog(const QString& customerId,
     connect(m_saveBtn, &QPushButton::clicked, this, &CustomerDetailDialog::handleSaveOrCommit);
     connect(m_claimBtn, &QPushButton::clicked, this, &CustomerDetailDialog::handleClaimAction);
     connect(m_evictBtn, &QPushButton::clicked, this, &CustomerDetailDialog::handleEvictAction);
+    connect(m_deleteBtn, &QPushButton::clicked, this, [this](){
+        auto button = QMessageBox::critical(this, "警报", "确定要彻底删除该客户吗？", QMessageBox::Yes | QMessageBox::No);
+        if (button == QMessageBox::Yes) {
+            m_repo->deleteCustomer(m_customerId);
+            QMessageBox::information(this, "成功", "客户数据已彻底清除。");
+            accept();
+        }
+    });
 
     // 5. 加载数据并实施严密的动态权限压制
     loadCustomerAndSetupPrivilege();

@@ -1,5 +1,8 @@
 #include "SalesMainWindow.h"
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QTextStream>
+#include <QFile>
 
 SalesMainWindow::SalesMainWindow(std::shared_ptr<ICustomerRepository> repo, const User& user, QWidget *parent)
     : BaseMainWindow(repo, user, parent)

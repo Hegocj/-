@@ -25,7 +25,7 @@ protected:
     void refreshDataByMenu(int index) override;       // 根据菜单索引切换不同的渲染策略
     void executeSearch(const QString& key) override;  // 部门限制的模糊搜索
     void executeRowModification(int row) override;    // 经理特有的双击流转与一键交接业务
-
+    
 private:
     // =========================================================================
     //️ 经理特有私有辅助渲染与算法函数
@@ -40,7 +40,7 @@ private:
      * @return 是否成功完成指派变更
      */
     bool allocateCustomerWithLoadBalancing(const QString& customerId);
-
+    
 private:
     // 缓存数据，防止行号错位
     std::vector<User> m_teamUsers;

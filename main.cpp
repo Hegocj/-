@@ -6,6 +6,7 @@
 #include "GlobalModels.h"
 #include "ICustomerRepository.h"
 #include "SQLiteCustomerRepo.h"
+#include "HighSeasManager.h"
 
 // 2. 引入三个角色的隔离子类主窗口
 #include "SalesMainWindow.h"
@@ -68,6 +69,8 @@ int main(int argc, char *argv[])
         if (mainWin)
             //  关键一步：对象已经安全诞生，通知基类点火启动菜单和数据刷新
             mainWin->bootstrapMainWindow();
+        auto* highSeasManager = new HighSeasManager(repo, 30, mainWin);
+        highSeasManager->start(5 * 60 * 1000);
         mainWin->show();
         int result = a.exec();
 

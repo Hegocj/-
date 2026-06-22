@@ -1,11 +1,17 @@
 #include "AdminMainWindow.h"
 #include "customerdetaildialog.h"
+#include "userdetaildialog.h"
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QDateTime>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QVBoxLayout>
+#include <QHeaderView>
+#include <QFileDialog>
+#include <QTextStream>
+#include <QFile>
+#include <QMenu>
 
 // 管理员私有变量声明（可以在类的构造函数中动态初始化）
 static QTreeWidget* s_orgTree = nullptr;
@@ -20,7 +26,18 @@ AdminMainWindow::AdminMainWindow(std::shared_ptr<ICustomerRepository> repo, cons
         s_orgTree = new QTreeWidget(m_customerTable->parentWidget());
         s_orgTree->setColumnCount(3);
         s_orgTree->setHeaderLabels({"部门", "员工ID", "职权"});
+        // 设置合理的列宽，避免信息堆叠
+        s_orgTree->setColumnWidth(0, 300);  // 部门列宽一点
+        s_orgTree->setColumnWidth(1, 120);  // 员工ID列
+        s_orgTree->setColumnWidth(2, 100);  // 职权列
+        // 设置第一列可以自动伸展，填满剩余空间
+        s_orgTree->header()->setStretchLastSection(false);
+        s_orgTree->header()->setSectionResizeMode(0, QHeaderView::Stretch);
         s_orgTree->hide(); // 默认先隐藏
+        
+        // 绑定树状视图的双击事件
+        connect(s_orgTree, &QTreeWidget::itemDoubleClicked, 
+                this, &AdminMainWindow::onTreeItemDoubleClicked);
 
         // 寻找布局并把树加进去（使其与 Table 共享空间）
         if (m_customerTable->parentWidget()->layout()) {
@@ -79,7 +96,7 @@ void AdminMainWindow::renderDepartmentTree()
 
     // 1. 提取所有经理（作为父节点）
     for (const auto& user : allUsers) {
-        if (user.getRole() == UserRole::Manager) {
+        if (user.getRole() == UserRole::Manager && user.isActive()) {
 
             // 创建顶级父节点（部门/经理节点），Qt 会自动在前面挂载 `>` 箭头
             QTreeWidgetItem* managerItem = new QTreeWidgetItem(s_orgTree);
@@ -89,7 +106,9 @@ void AdminMainWindow::renderDepartmentTree()
 
             // 2. 嵌套提取该经理部门底下的所有销售员工（作为子节点）
             for (const auto& subUser : allUsers) {
-                if (subUser.getDepartment() == user.getDepartment() && subUser.getRole() == UserRole::Sales) {
+                if (subUser.getDepartment() == user.getDepartment() &&
+                    subUser.getRole() == UserRole::Sales &&
+                    subUser.isActive()) {
 
                     // 将其挂载到刚才的 managerItem 下面，作为子节点隐藏起来
                     QTreeWidgetItem* salesItem = new QTreeWidgetItem(managerItem);
@@ -182,5 +201,23 @@ void AdminMainWindow::renderGlobalCustomers(const std::vector<Customer>& custome
         m_customerTable->setItem(i, 1, new QTableWidgetItem(customers[i].getName()));
         m_customerTable->setItem(i, 2, new QTableWidgetItem(customers[i].getPhone()));
         m_customerTable->setItem(i, 3, new QTableWidgetItem(customers[i].getOwnerId().isEmpty() ? "公海池" : customers[i].getOwnerId()));
+    }
+}
+
+// =========================================================================
+//  6. 树状视图双击事件处理
+// =========================================================================
+void AdminMainWindow::onTreeItemDoubleClicked(QTreeWidgetItem* item, int column)
+{
+    Q_UNUSED(column);
+    if (!item) return;
+    
+    // 从树节点中提取员工ID（第二列）
+    QString userId = item->text(1);
+    
+    // 打开员工详情对话框
+    UserDetailDialog userDlg(userId, m_repo, m_currentUser, this);
+    if (userDlg.exec() == QDialog::Accepted) {
+        renderDepartmentTree();
     }
 }

@@ -73,6 +73,9 @@ protected slots:
     void onMenuIndexChanged(int index);             // 侧边栏切换拦截，触发子类具体刷新
     void onTableDoubleClicked(int row, int column); // 行双击拦截，触发子类具体流转
 
+    //virtual void onGlobalImportClicked() = 0; // 声明为纯虚或虚函数，让经理/管理员子类去重写实现
+    //virtual void onGlobalExportClicked() = 0;
+
 protected:
     // 数据隔离上下文
     std::shared_ptr<ICustomerRepository> m_repo;
@@ -85,6 +88,8 @@ protected:
     QLineEdit* m_searchEdit = nullptr;
     QPushButton* m_searchButton = nullptr;
     QTableWidget* m_customerTable = nullptr;
+    QPushButton* m_importBtn = nullptr;
+    QPushButton* m_exportBtn = nullptr;
 
 private:
     Ui::MainWindow *ui;

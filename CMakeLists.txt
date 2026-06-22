@@ -24,6 +24,14 @@ qt_add_executable(customerContorlSystem
     user.h
     Customer.h
     FollowRecord.h
+    userdetaildialog.h userdetaildialog.cpp
+    DatabaseManager.h DatabaseManager.cpp
+    DataMockGenerator.h DataMockGenerator.cpp
+    CustomerController.h CustomerController.cpp
+    HighSeasManager.h HighSeasManager.cpp
+    CustomerWorkspace.h CustomerWorkspace.cpp
+    TimelineWidget.h TimelineWidget.cpp
+    AsyncExportWorker.h AsyncExportWorker.cpp
 )
 
 target_link_libraries(customerContorlSystem
