@@ -7,7 +7,7 @@
 
 /**
  * @brief CRM 系统数据仓库接口定义
- * 该接口作为“系统骨架”，用于解耦业务逻辑层与底层数据库实现
+ * 该接口作为"系统骨架"，用于解耦业务逻辑层与底层数据库实现
  */
 class ICustomerRepository {
 public:
@@ -59,6 +59,7 @@ public:
      */
     virtual bool updateUser(const User& user) = 0;
     virtual bool updateUserPassword(const QString& userId, const QString& password) = 0;
+    virtual bool deleteUser(const QString& userId) = 0;
 
 
     // ==========================================

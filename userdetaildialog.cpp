@@ -248,7 +248,43 @@ void UserDetailDialog::onTransferButtonClicked()
 
 void UserDetailDialog::onDeleteButtonClicked()
 {
+    if (m_currentUser.getRole() != UserRole::Admin) {
+        QMessageBox::warning(this,
+                             QStringLiteral("\u6743\u9650\u62e6\u622a"),
+                             QStringLiteral("\u53ea\u6709\u7ba1\u7406\u5458\u624d\u80fd\u5220\u9664\u5458\u5de5\u6863\u6848\u3002"));
+        return;
+    }
+
+    if (m_targetUser.getUserId() == m_currentUser.getUserId()) {
+        QMessageBox::warning(this,
+                             QStringLiteral("\u65e0\u6cd5\u5220\u9664"),
+                             QStringLiteral("\u4e0d\u80fd\u5220\u9664\u81ea\u5df1\u7684\u8d26\u53f7\u3002"));
+        return;
+    }
+
+    const auto confirmText = QStringLiteral(
+        "\u786e\u5b9a\u8981\u5f7b\u5e95\u5220\u9664\u5458\u5de5 [%1] \u7684\u6863\u6848\u5417\uff1f\n\n"
+        "\u6ce8\u610f\uff1a\u8be5\u5458\u5de5\u540d\u4e0b\u7684\u6240\u6709\u5ba2\u6237\u5c06\u81ea\u52a8\u8f6c\u5165\u516c\u6d77\u6c60\uff0c\u8be5\u64cd\u4f5c\u4e0d\u53ef\u6062\u590d\uff01"
+    ).arg(m_targetUser.getUsername());
+
+    if (QMessageBox::warning(this,
+                             QStringLiteral("\u786e\u8ba4\u5220\u9664"),
+                             confirmText,
+                             QMessageBox::Yes | QMessageBox::No,
+                             QMessageBox::No) != QMessageBox::Yes) {
+        return;
+    }
+
+    if (!m_repo->deleteUser(m_targetUser.getUserId())) {
+        QMessageBox::critical(this,
+                             QStringLiteral("\u5220\u9664\u5931\u8d25"),
+                             QStringLiteral("\u5458\u5de5\u6863\u6848\u5220\u9664\u5931\u8d25\u3002"));
+        return;
+    }
+
     QMessageBox::information(this,
-                             QStringLiteral("\u6682\u4e0d\u652f\u6301"),
-                             QStringLiteral("\u5f53\u524d\u4ed3\u50a8\u63a5\u53e3\u672a\u63d0\u4f9b\u5458\u5de5\u7269\u7406\u5220\u9664\u529f\u80fd\uff0c\u8bf7\u4f7f\u7528\u79bb\u804c\u51bb\u7ed3\u5904\u7406\u3002"));
+                             QStringLiteral("\u5220\u9664\u6210\u529f"),
+                             QStringLiteral("\u5458\u5de5 [%1] \u7684\u6863\u6848\u5df2\u5f7b\u5e95\u5220\u9664\uff0c\u5176\u540d\u4e0b\u5ba2\u6237\u5df2\u8f6c\u5165\u516c\u6d77\u6c60\u3002")
+                             .arg(m_targetUser.getUsername()));
+    accept();
 }

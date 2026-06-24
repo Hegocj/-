@@ -20,6 +20,7 @@ public:
     bool saveUser(const User& user, const QString& password = QString()) override;
     bool updateUser(const User& user) override;
     bool updateUserPassword(const QString& userId, const QString& password) override;
+    bool deleteUser(const QString& userId) override;
 
     // 客户数据 CRUD
     std::vector<Customer> getAllCustomers() override;

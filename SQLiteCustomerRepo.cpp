@@ -405,6 +405,38 @@ bool SQLiteCustomerRepo::updateUserPassword(const QString& userId, const QString
     return query.exec();
 }
 
+bool SQLiteCustomerRepo::deleteUser(const QString& userId)
+{
+    if (userId.trimmed().isEmpty()) {
+        return false;
+    }
+
+    DatabaseManager& databaseManager = DatabaseManager::instance();
+    if (!databaseManager.beginTransaction()) {
+        return false;
+    }
+
+    // 先将该用户名下的客户全部释放到公海池
+    QSqlQuery releaseQuery(m_db);
+    releaseQuery.prepare(QStringLiteral("UPDATE customer SET owner_id = '' WHERE owner_id = ?"));
+    releaseQuery.addBindValue(userId);
+    if (!releaseQuery.exec()) {
+        databaseManager.rollbackTransaction();
+        return false;
+    }
+
+    // 然后删除该用户
+    QSqlQuery deleteQuery(m_db);
+    deleteQuery.prepare(QStringLiteral("DELETE FROM user WHERE id = ?"));
+    deleteQuery.addBindValue(userId);
+    if (!deleteQuery.exec()) {
+        databaseManager.rollbackTransaction();
+        return false;
+    }
+
+    return databaseManager.commitTransaction();
+}
+
 std::vector<Customer> SQLiteCustomerRepo::getAllCustomers()
 {
     std::vector<Customer> customers;
