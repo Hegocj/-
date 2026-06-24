@@ -12,16 +12,18 @@
 #define SQLITECUSTOMERREPO_H
 
 #include "ICustomerRepository.h"
+#include "RandomDataGenerator.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
 class SQLiteCustomerRepo : public ICustomerRepository {
 public:
-    SQLiteCustomerRepo();
+    explicit SQLiteCustomerRepo(const RandomDataConfig& randomDataConfig = {});
     ~SQLiteCustomerRepo() override;
 
     // 数据库生命周期
     bool initializeDatabase(const QString& dbPath) override;
+    bool seedRandomData(const RandomDataConfig& config, bool clearExisting = true) override;
     void closeDatabase() override;
 
     // 身份认证与用户管理
@@ -54,12 +56,17 @@ public:
 private:
     bool createTables();
     bool insertInitialData();
+    bool writeRandomDataSet(const RandomDataSet& dataSet, bool clearExisting);
+    bool insertUserWithPassword(const User& user, const QString& password);
+    bool insertCustomerRow(const Customer& customer);
+    bool insertFollowRecordRow(const FollowRecord& record);
     User userFromQuery(const QSqlQuery& query);
     Customer customerFromQuery(const QSqlQuery& query);
     FollowRecord followRecordFromQuery(const QSqlQuery& query);
 
     QSqlDatabase m_db;
     bool m_initialized;
+    RandomDataConfig m_randomDataConfig;
 };
 
 #endif // SQLITECUSTOMERREPO_H

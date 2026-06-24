@@ -14,6 +14,7 @@
 #include <vector>
 #include <QString>
 #include "GlobalModels.h"
+#include "RandomDataGenerator.h"
 
 /**
  * @brief CRM 系统数据仓库接口定义
@@ -34,6 +35,14 @@ public:
      * @note 若检测到文件不存在，应自动创建 user, customer, follow_record 三张表并写入初始管理员账号
      */
     virtual bool initializeDatabase(const QString& dbPath) = 0;
+
+    /**
+     * @brief 按数量生成本地演示数据
+     * @param config 指定客户、销售、经理、管理员数量
+     * @param clearExisting 是否先清空旧的用户、客户和跟进记录
+     * @return 生成并写入成功返回 true
+     */
+    virtual bool seedRandomData(const RandomDataConfig& config, bool clearExisting = true) = 0;
 
     /**
      * @brief 关闭数据库连接，释放资源

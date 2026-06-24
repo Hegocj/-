@@ -29,7 +29,13 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     QApplication::setQuitOnLastWindowClosed(false);
 
-    std::shared_ptr<ICustomerRepository> repo = std::make_shared<SQLiteCustomerRepo>();
+    RandomDataConfig randomDataConfig;
+    randomDataConfig.customerCount = 120;
+    randomDataConfig.salesCount = 20;
+    randomDataConfig.managerCount = 5;
+    randomDataConfig.adminCount = 1;
+
+    std::shared_ptr<ICustomerRepository> repo = std::make_shared<SQLiteCustomerRepo>(randomDataConfig);
     if (!repo->initializeDatabase(QStringLiteral("crm.db"))) {
         QMessageBox::critical(nullptr,
                               QStringLiteral("\u7cfb\u7edf\u9519\u8bef"),

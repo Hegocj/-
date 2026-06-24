@@ -119,7 +119,14 @@ void CustomerDetailDialog::loadCustomerAndSetupPrivilege()
     const QString ownerId = m_customer.getOwnerId();
 
     if (m_currentUser.getRole() == UserRole::Sales) {
-        m_ownerCombo->addItem(ownerId.isEmpty() ? QStringLiteral("\u516c\u6d77\u6c60") : ownerId, ownerId);
+        QString ownerText = ownerId;
+        for (const auto& user : m_repo->getAllUsers()) {
+            if (user.getUserId() == ownerId) {
+                ownerText = user.getUsername();
+                break;
+            }
+        }
+        m_ownerCombo->addItem(ownerId.isEmpty() ? QStringLiteral("\u516c\u6d77\u6c60") : ownerText, ownerId);
         m_ownerCombo->setEnabled(false);
 
         if (ownerId.isEmpty()) {
@@ -169,7 +176,7 @@ void CustomerDetailDialog::populateSalesCombo()
         const bool visible = (m_currentUser.getRole() == UserRole::Admin) ||
                              (user.getDepartment() == m_currentUser.getDepartment());
         if (visible && user.getRole() == UserRole::Sales && user.isActive()) {
-            m_ownerCombo->addItem(QStringLiteral("%1 (ID: %2)").arg(user.getUsername(), user.getUserId()), user.getUserId());
+            m_ownerCombo->addItem(user.getUsername(), user.getUserId());
             if (user.getUserId() == m_customer.getOwnerId()) {
                 targetIndex = currentIndex;
             }

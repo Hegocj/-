@@ -221,6 +221,13 @@ void ManagerMainWindow::renderTeamUsers(const std::vector<User>& indicatedUsers)
 
 void ManagerMainWindow::renderCustomers(const std::vector<Customer>& customers)
 {
+    std::map<QString, QString> salesNameById;
+    for (const auto& user : m_repo->getAllUsers()) {
+        if (user.getRole() == UserRole::Sales) {
+            salesNameById[user.getUserId()] = user.getUsername();
+        }
+    }
+
     m_customerTable->setRowCount(0);
     m_customerTable->setColumnCount(5);
     m_customerTable->setHorizontalHeaderLabels({
@@ -243,9 +250,12 @@ void ManagerMainWindow::renderCustomers(const std::vector<Customer>& customers)
         auto* levelItem = new QTableWidgetItem(isVip ? QStringLiteral("VIP") : QStringLiteral("\u666e\u901a"));
 
         const QString owner = customer.getOwnerId();
+        const QString ownerText = salesNameById.find(owner) == salesNameById.end()
+                                      ? owner
+                                      : salesNameById.at(owner);
         auto* ownerItem = new QTableWidgetItem(owner.isEmpty()
                                                    ? QStringLiteral("\u516c\u6d77\u6c60")
-                                                   : owner);
+                                                   : ownerText);
         if (owner.isEmpty()) {
             ownerItem->setForeground(QBrush(Qt::darkYellow));
         }

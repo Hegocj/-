@@ -24,6 +24,7 @@ qt_add_executable(customerContorlSystem
     src/repositories/DatabaseManager.h src/repositories/DatabaseManager.cpp
     src/services/HighSeasManager.h src/services/HighSeasManager.cpp
     src/services/AsyncExportWorker.h src/services/AsyncExportWorker.cpp
+    src/services/RandomDataGenerator.h src/services/RandomDataGenerator.cpp
     src/ui/auth/logindialog.h src/ui/auth/logindialog.cpp src/ui/auth/logindialog.ui
     src/ui/core/BaseMainWindow.h src/ui/core/basemainwindow.cpp
     src/ui/windows/SalesMainWindow.h src/ui/windows/salesmainwindow.cpp

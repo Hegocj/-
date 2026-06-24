@@ -38,6 +38,8 @@
 #include <QTreeWidgetItem>
 #include <QVBoxLayout>
 
+#include <map>
+
 static QTreeWidget* s_orgTree = nullptr;
 
 AdminMainWindow::AdminMainWindow(std::shared_ptr<ICustomerRepository> repo, const User& user, QWidget* parent)
@@ -47,16 +49,19 @@ AdminMainWindow::AdminMainWindow(std::shared_ptr<ICustomerRepository> repo, cons
         m_addCustomerBtn = new QPushButton(QStringLiteral("\u6dfb\u52a0\u5ba2\u6237"), m_rightContainer);
         m_addSalesBtn = new QPushButton(QStringLiteral("\u6dfb\u52a0\u9500\u552e"), m_rightContainer);
         m_addManagerBtn = new QPushButton(QStringLiteral("\u6dfb\u52a0\u7ecf\u7406"), m_rightContainer);
+        m_generateDataBtn = new QPushButton(QStringLiteral("\u751f\u6210\u6d4b\u8bd5\u6570\u636e"), m_rightContainer);
         m_accountPasswordBtn = new QPushButton(QStringLiteral("\u67e5\u770b\u7ba1\u7406\u5458/\u7ecf\u7406/\u9500\u552e\u8d26\u53f7\u5bc6\u7801"), m_rightContainer);
 
         m_rightContainer->layout()->addWidget(m_addCustomerBtn);
         m_rightContainer->layout()->addWidget(m_addSalesBtn);
         m_rightContainer->layout()->addWidget(m_addManagerBtn);
+        m_rightContainer->layout()->addWidget(m_generateDataBtn);
         m_rightContainer->layout()->addWidget(m_accountPasswordBtn);
 
         connect(m_addCustomerBtn, &QPushButton::clicked, this, &AdminMainWindow::showAddCustomerDialog);
         connect(m_addSalesBtn, &QPushButton::clicked, this, &AdminMainWindow::showAddSalesDialog);
         connect(m_addManagerBtn, &QPushButton::clicked, this, &AdminMainWindow::showAddManagerDialog);
+        connect(m_generateDataBtn, &QPushButton::clicked, this, &AdminMainWindow::generateRandomData);
         connect(m_accountPasswordBtn, &QPushButton::clicked, this, &AdminMainWindow::showAccountPasswordDialog);
     }
 
@@ -252,6 +257,13 @@ void AdminMainWindow::executeRowModification(int row)
 void AdminMainWindow::renderGlobalCustomers(const std::vector<Customer>& customers)
 {
     m_globalCustomersCache = customers;
+    std::map<QString, QString> salesNameById;
+    for (const auto& user : m_repo->getAllUsers()) {
+        if (user.getRole() == UserRole::Sales) {
+            salesNameById[user.getUserId()] = user.getUsername();
+        }
+    }
+
     m_customerTable->setRowCount(0);
     m_customerTable->setColumnCount(5);
     m_customerTable->setHorizontalHeaderLabels({
@@ -272,9 +284,13 @@ void AdminMainWindow::renderGlobalCustomers(const std::vector<Customer>& custome
                                                   : customer.getName());
         auto* phoneItem = new QTableWidgetItem(customer.getPhone());
         auto* levelItem = new QTableWidgetItem(isVip ? QStringLiteral("VIP") : QStringLiteral("\u666e\u901a"));
+        const QString ownerId = customer.getOwnerId();
+        const QString ownerText = salesNameById.find(ownerId) == salesNameById.end()
+                                      ? ownerId
+                                      : salesNameById.at(ownerId);
         auto* ownerItem = new QTableWidgetItem(customer.getOwnerId().isEmpty()
                                                    ? QStringLiteral("\u516c\u6d77\u6c60")
-                                                   : customer.getOwnerId());
+                                                   : ownerText);
         if (isVip) {
             const QBrush vipBrush(QColor(255, 245, 210));
             for (auto* item : {idItem, nameItem, phoneItem, levelItem, ownerItem}) {
@@ -477,6 +493,47 @@ void AdminMainWindow::showAccountPasswordDialog()
     dialog.exec();
 }
 
+void AdminMainWindow::generateRandomData()
+{
+    const QString message = QStringLiteral(
+        "\u5c06\u6e05\u7a7a\u5f53\u524d\u5458\u5de5\u3001\u5ba2\u6237\u548c\u8ddf\u8fdb\u8bb0\u5f55\uff0c"
+        "\u5e76\u91cd\u65b0\u751f\u6210\uff1a\n\n"
+        "\u7ba1\u7406\u5458 1 \u4e2a\n"
+        "\u7ecf\u7406 5 \u4e2a\n"
+        "\u9500\u552e 20 \u4e2a\n"
+        "\u5ba2\u6237 120 \u6761\n\n"
+        "\u6240\u6709\u8d26\u53f7\u521d\u59cb\u5bc6\u7801\u90fd\u662f 123\u3002\u786e\u5b9a\u7ee7\u7eed\u5417\uff1f"
+    );
+
+    if (QMessageBox::warning(this,
+                             QStringLiteral("\u751f\u6210\u6d4b\u8bd5\u6570\u636e"),
+                             message,
+                             QMessageBox::Yes | QMessageBox::No,
+                             QMessageBox::No) != QMessageBox::Yes) {
+        return;
+    }
+
+    RandomDataConfig config;
+    config.adminCount = 1;
+    config.managerCount = 5;
+    config.salesCount = 20;
+    config.customerCount = 120;
+
+    if (!m_repo->seedRandomData(config, true)) {
+        QMessageBox::critical(this,
+                              QStringLiteral("\u751f\u6210\u5931\u8d25"),
+                              QStringLiteral("\u6d4b\u8bd5\u6570\u636e\u5199\u5165\u672c\u5730\u6570\u636e\u5e93\u5931\u8d25\u3002"));
+        return;
+    }
+
+    QMessageBox::information(this,
+                             QStringLiteral("\u751f\u6210\u5b8c\u6210"),
+                             QStringLiteral("\u5df2\u751f\u6210 1 \u4e2a\u7ba1\u7406\u5458\u30015 \u4e2a\u7ecf\u7406\u300120 \u4e2a\u9500\u552e\u548c 120 \u6761\u5ba2\u6237\u3002\n"
+                                            "\u5efa\u8bae\u9000\u51fa\u5e76\u91cd\u65b0\u767b\u5f55\u4ee5\u4f7f\u5f53\u524d\u7528\u6237\u4e0a\u4e0b\u6587\u5b8c\u5168\u5237\u65b0\u3002"));
+
+    refreshDataByMenu(m_leftMenu->currentRow());
+}
+
 void AdminMainWindow::showAddCustomerDialog()
 {
     QDialog dialog(this);
@@ -497,8 +554,7 @@ void AdminMainWindow::showAddCustomerDialog()
     ownerCombo->addItem(QStringLiteral("\u516c\u6d77\u6c60"), QString());
     for (const auto& user : m_repo->getAllUsers()) {
         if (user.getRole() == UserRole::Sales && user.isActive()) {
-            ownerCombo->addItem(QStringLiteral("%1\uff08%2\uff09").arg(user.getUsername(), user.getUserId()),
-                                user.getUserId());
+            ownerCombo->addItem(user.getUsername(), user.getUserId());
         }
     }
 

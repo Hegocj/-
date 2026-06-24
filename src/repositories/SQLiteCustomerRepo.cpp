@@ -15,8 +15,9 @@
 #include <QDebug>
 #include <QSqlError>
 
-SQLiteCustomerRepo::SQLiteCustomerRepo()
+SQLiteCustomerRepo::SQLiteCustomerRepo(const RandomDataConfig& randomDataConfig)
     : m_initialized(false)
+    , m_randomDataConfig(randomDataConfig)
 {
 }
 
@@ -56,52 +57,6 @@ bool SQLiteCustomerRepo::initializeDatabase(const QString& dbPath)
     ));
     unrecoverableHashQuery.addBindValue(QStringLiteral("123"));
     unrecoverableHashQuery.exec();
-
-    QSqlQuery defaultUserQuery(m_db);
-    defaultUserQuery.prepare(QStringLiteral(
-        "INSERT OR IGNORE INTO user (id, username, department, role, password, is_active) "
-        "VALUES (?, ?, ?, ?, ?, ?)"
-    ));
-    defaultUserQuery.addBindValue(QStringLiteral("admin"));
-    defaultUserQuery.addBindValue(QStringLiteral("admin"));
-    defaultUserQuery.addBindValue(QStringLiteral("\u603b\u90e8"));
-    defaultUserQuery.addBindValue(QStringLiteral("admin"));
-    defaultUserQuery.addBindValue(QStringLiteral("123"));
-    defaultUserQuery.addBindValue(1);
-    defaultUserQuery.exec();
-
-    defaultUserQuery.prepare(QStringLiteral(
-        "INSERT OR IGNORE INTO user (id, username, department, role, password, is_active) "
-        "VALUES (?, ?, ?, ?, ?, ?)"
-    ));
-    defaultUserQuery.addBindValue(QStringLiteral("sales01"));
-    defaultUserQuery.addBindValue(QStringLiteral("sales01"));
-    defaultUserQuery.addBindValue(QStringLiteral("\u9500\u552e\u90e8"));
-    defaultUserQuery.addBindValue(QStringLiteral("sales"));
-    defaultUserQuery.addBindValue(QStringLiteral("123"));
-    defaultUserQuery.addBindValue(1);
-    defaultUserQuery.exec();
-
-    defaultUserQuery.prepare(QStringLiteral(
-        "INSERT OR IGNORE INTO user (id, username, department, role, password, is_active) "
-        "VALUES (?, ?, ?, ?, ?, ?)"
-    ));
-    defaultUserQuery.addBindValue(QStringLiteral("mgr_001"));
-    defaultUserQuery.addBindValue(QStringLiteral("mgr_001"));
-    defaultUserQuery.addBindValue(QStringLiteral("\u9500\u552e\u90e8"));
-    defaultUserQuery.addBindValue(QStringLiteral("manager"));
-    defaultUserQuery.addBindValue(QStringLiteral("123"));
-    defaultUserQuery.addBindValue(1);
-    defaultUserQuery.exec();
-
-    QSqlQuery managerCompatibilityQuery(m_db);
-    managerCompatibilityQuery.prepare(QStringLiteral(
-        "UPDATE user SET is_active = 1, role = ?, department = ? WHERE id = ?"
-    ));
-    managerCompatibilityQuery.addBindValue(QStringLiteral("manager"));
-    managerCompatibilityQuery.addBindValue(QStringLiteral("\u9500\u552e\u90e8"));
-    managerCompatibilityQuery.addBindValue(QStringLiteral("mgr_001"));
-    managerCompatibilityQuery.exec();
 
     m_initialized = true;
     return true;
@@ -179,93 +134,127 @@ bool SQLiteCustomerRepo::insertInitialData()
         return true;
     }
 
-    const QString insertUser = QStringLiteral(
+    const RandomDataSet dataSet = RandomDataGenerator::generate(m_randomDataConfig);
+    return writeRandomDataSet(dataSet, false);
+}
+
+bool SQLiteCustomerRepo::seedRandomData(const RandomDataConfig& config, bool clearExisting)
+{
+    const RandomDataSet dataSet = RandomDataGenerator::generate(config);
+    return writeRandomDataSet(dataSet, clearExisting);
+}
+
+bool SQLiteCustomerRepo::writeRandomDataSet(const RandomDataSet& dataSet, bool clearExisting)
+{
+    if (clearExisting) {
+        QSqlQuery query(m_db);
+        if (!query.exec(QStringLiteral("DELETE FROM follow_record"))) {
+            qDebug() << "Clear follow_record error:" << query.lastError();
+            return false;
+        }
+        if (!query.exec(QStringLiteral("DELETE FROM customer"))) {
+            qDebug() << "Clear customer error:" << query.lastError();
+            return false;
+        }
+        if (!query.exec(QStringLiteral("DELETE FROM user"))) {
+            qDebug() << "Clear user error:" << query.lastError();
+            return false;
+        }
+    }
+
+    for (const auto& user : dataSet.admins) {
+        if (!insertUserWithPassword(user, QStringLiteral("123"))) {
+            return false;
+        }
+    }
+    for (const auto& user : dataSet.managers) {
+        if (!insertUserWithPassword(user, QStringLiteral("123"))) {
+            return false;
+        }
+    }
+    for (const auto& user : dataSet.sales) {
+        if (!insertUserWithPassword(user, QStringLiteral("123"))) {
+            return false;
+        }
+    }
+    for (const auto& customer : dataSet.customers) {
+        if (!insertCustomerRow(customer)) {
+            return false;
+        }
+    }
+    for (const auto& record : dataSet.followRecords) {
+        if (!insertFollowRecordRow(record)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool SQLiteCustomerRepo::insertUserWithPassword(const User& user, const QString& password)
+{
+    QString roleStr = QStringLiteral("sales");
+    if (user.getRole() == UserRole::Admin) {
+        roleStr = QStringLiteral("admin");
+    } else if (user.getRole() == UserRole::Manager) {
+        roleStr = QStringLiteral("manager");
+    }
+
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral(
         "INSERT OR REPLACE INTO user (id, username, department, role, password, is_active) "
         "VALUES (?, ?, ?, ?, ?, ?)"
-    );
-
-    query.prepare(insertUser);
-    query.addBindValue(QStringLiteral("admin"));
-    query.addBindValue(QStringLiteral("admin"));
-    query.addBindValue(QStringLiteral("\u603b\u90e8"));
-    query.addBindValue(QStringLiteral("admin"));
-    query.addBindValue(QStringLiteral("123"));
-    query.addBindValue(1);
+    ));
+    query.addBindValue(user.getUserId());
+    query.addBindValue(user.getUsername());
+    query.addBindValue(user.getDepartment());
+    query.addBindValue(roleStr);
+    query.addBindValue(password);
+    query.addBindValue(user.isActive() ? 1 : 0);
     if (!query.exec()) {
-        qDebug() << "Insert admin user error:" << query.lastError();
+        qDebug() << "Insert generated user error:" << user.getUserId() << query.lastError();
         return false;
     }
+    return true;
+}
 
-    query.prepare(insertUser);
-    query.addBindValue(QStringLiteral("sales01"));
-    query.addBindValue(QStringLiteral("sales01"));
-    query.addBindValue(QStringLiteral("\u9500\u552e\u90e8"));
-    query.addBindValue(QStringLiteral("sales"));
-    query.addBindValue(QStringLiteral("123"));
-    query.addBindValue(1);
-    if (!query.exec()) {
-        qDebug() << "Insert sales01 user error:" << query.lastError();
-        return false;
-    }
-
-    query.prepare(insertUser);
-    query.addBindValue(QStringLiteral("mgr_001"));
-    query.addBindValue(QStringLiteral("mgr_001"));
-    query.addBindValue(QStringLiteral("\u9500\u552e\u90e8"));
-    query.addBindValue(QStringLiteral("manager"));
-    query.addBindValue(QStringLiteral("123"));
-    query.addBindValue(1);
-    if (!query.exec()) {
-        qDebug() << "Insert mgr_001 user error:" << query.lastError();
-        return false;
-    }
-
-    const QString insertCustomer = QStringLiteral(
+bool SQLiteCustomerRepo::insertCustomerRow(const Customer& customer)
+{
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral(
         "INSERT OR REPLACE INTO customer (id, name, phone, level, last_follow_time, owner_id) "
         "VALUES (?, ?, ?, ?, ?, ?)"
-    );
-
-    query.prepare(insertCustomer);
-    query.addBindValue(QStringLiteral("C001"));
-    query.addBindValue(QStringLiteral("\u5f20\u4e09"));
-    query.addBindValue(QStringLiteral("13800138000"));
-    query.addBindValue(QStringLiteral("VIP"));
-    query.addBindValue(QDateTime::currentDateTime().toMSecsSinceEpoch());
-    query.addBindValue(QStringLiteral("sales01"));
+    ));
+    query.addBindValue(customer.getId());
+    query.addBindValue(customer.getName());
+    query.addBindValue(customer.getPhone());
+    query.addBindValue(customer.getLevel());
+    query.addBindValue(customer.getLastFollowTime().toMSecsSinceEpoch());
+    query.addBindValue(customer.getOwnerId());
     if (!query.exec()) {
-        qDebug() << "Insert C001 customer error:" << query.lastError();
+        qDebug() << "Insert generated customer error:" << customer.getId() << query.lastError();
         return false;
     }
+    return true;
+}
 
-    query.prepare(insertCustomer);
-    query.addBindValue(QStringLiteral("C002"));
-    query.addBindValue(QStringLiteral("\u674e\u56db"));
-    query.addBindValue(QStringLiteral("13900139000"));
-    query.addBindValue(QStringLiteral("\u666e\u901a"));
-    query.addBindValue(QDateTime::currentDateTime().toMSecsSinceEpoch());
-    query.addBindValue(QString());
-    if (!query.exec()) {
-        qDebug() << "Insert C002 customer error:" << query.lastError();
-        return false;
-    }
-
-    const QString insertFollow = QStringLiteral(
+bool SQLiteCustomerRepo::insertFollowRecordRow(const FollowRecord& record)
+{
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral(
         "INSERT OR REPLACE INTO follow_record (id, customer_id, operator_id, operator_name, content, date) "
         "VALUES (?, ?, ?, ?, ?, ?)"
-    );
-
-    query.prepare(insertFollow);
-    query.addBindValue(QStringLiteral("FR001"));
-    query.addBindValue(QStringLiteral("C001"));
-    query.addBindValue(QStringLiteral("sales01"));
-    query.addBindValue(QStringLiteral("sales01"));
-    query.addBindValue(QStringLiteral("\u5ba2\u6237\u9996\u6b21\u7535\u8bdd\u56de\u8bbf"));
-    query.addBindValue(QDateTime::fromString(QStringLiteral("2026-06-17"), QStringLiteral("yyyy-MM-dd")).toMSecsSinceEpoch());
+    ));
+    query.addBindValue(record.getRecordId());
+    query.addBindValue(record.getCustomerId());
+    query.addBindValue(record.getOperatorId());
+    query.addBindValue(record.getOperatorName());
+    query.addBindValue(record.getContent());
+    query.addBindValue(record.getDate().toMSecsSinceEpoch());
     if (!query.exec()) {
-        qDebug() << "Insert follow record error:" << query.lastError();
+        qDebug() << "Insert generated follow record error:" << record.getRecordId() << query.lastError();
         return false;
     }
-
     return true;
 }
 

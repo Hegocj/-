@@ -38,6 +38,7 @@ private slots:
     void showAddCustomerDialog();
     void showAddSalesDialog();
     void showAddManagerDialog();
+    void generateRandomData();
 
 private:
     void renderDepartmentTree();
@@ -49,6 +50,7 @@ private:
     QPushButton* m_addCustomerBtn = nullptr;
     QPushButton* m_addSalesBtn = nullptr;
     QPushButton* m_addManagerBtn = nullptr;
+    QPushButton* m_generateDataBtn = nullptr;
 };
 
 #endif // ADMINMAINWINDOW_H
