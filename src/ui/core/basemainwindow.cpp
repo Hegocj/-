@@ -62,7 +62,7 @@ void BaseMainWindow::bootstrapMainWindow()
 
 void BaseMainWindow::initMixLayout()
 {
-    setWindowTitle(QStringLiteral("\u5ba2\u6237\u4fe1\u606f\u7ba1\u7406\u7cfb\u7edf - \u5f53\u524d\u7528\u6237\uff1a%1").arg(m_currentUser.getUsername()));
+    setWindowTitle(QStringLiteral("\u5ba2\u6237\u4fe1\u606f\u7ba1\u7406\u7cfb\u7edf - \u5f53\u524d\u7528\u6237\uff1a%1").arg(m_currentUser.getUsername())); // 中文: 客户信息管理系统 - 当前用户：%1
     setMinimumSize(900, 560);
 
     if (!ui->mainPlaceholder) {
@@ -88,11 +88,11 @@ void BaseMainWindow::initMixLayout()
 
     auto* searchLayout = new QHBoxLayout();
     m_searchEdit = new QLineEdit(m_rightContainer);
-    m_searchEdit->setPlaceholderText(QStringLiteral("\u8bf7\u8f93\u5165\u5ba2\u6237\u59d3\u540d\u3001\u7535\u8bdd\u6216\u5ba2\u6237\u7f16\u53f7\u641c\u7d22"));
-    m_searchButton = new QPushButton(QStringLiteral("\u641c\u7d22"), m_rightContainer);
-    m_importBtn = new QPushButton(QStringLiteral("\u5bfc\u5165"), m_rightContainer);
-    m_exportBtn = new QPushButton(QStringLiteral("\u5bfc\u51fa"), m_rightContainer);
-    m_logoutBtn = new QPushButton(QStringLiteral("\u767b\u51fa"), m_rightContainer);
+    m_searchEdit->setPlaceholderText(QStringLiteral("\u8bf7\u8f93\u5165\u5ba2\u6237\u59d3\u540d\u3001\u7535\u8bdd\u6216\u5ba2\u6237\u7f16\u53f7\u641c\u7d22")); // 中文: 请输入客户姓名、电话或客户编号搜索
+    m_searchButton = new QPushButton(QStringLiteral("\u641c\u7d22"), m_rightContainer); // 中文: 搜索
+    m_importBtn = new QPushButton(QStringLiteral("\u5bfc\u5165"), m_rightContainer); // 中文: 导入
+    m_exportBtn = new QPushButton(QStringLiteral("\u5bfc\u51fa"), m_rightContainer); // 中文: 导出
+    m_logoutBtn = new QPushButton(QStringLiteral("\u767b\u51fa"), m_rightContainer); // 中文: 登出
 
     searchLayout->addWidget(m_searchEdit, 1);
     searchLayout->addWidget(m_searchButton);
@@ -106,10 +106,10 @@ void BaseMainWindow::initMixLayout()
     m_customerTable = new QTableWidget(m_rightContainer);
     m_customerTable->setColumnCount(4);
     m_customerTable->setHorizontalHeaderLabels({
-        QStringLiteral("\u5ba2\u6237ID"),
-        QStringLiteral("\u5ba2\u6237\u59d3\u540d"),
-        QStringLiteral("\u8054\u7cfb\u7535\u8bdd"),
-        QStringLiteral("\u72b6\u6001/\u7b49\u7ea7")
+        QStringLiteral("\u5ba2\u6237ID"), // 中文: 客户ID
+        QStringLiteral("\u5ba2\u6237\u59d3\u540d"), // 中文: 客户姓名
+        QStringLiteral("\u8054\u7cfb\u7535\u8bdd"), // 中文: 联系电话
+        QStringLiteral("\u72b6\u6001/\u7b49\u7ea7") // 中文: 状态/等级
     });
     m_customerTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_customerTable->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -137,15 +137,15 @@ void BaseMainWindow::bindCoreSignals()
 
     connect(m_importBtn, &QPushButton::clicked, this, [this]() {
         if (!m_repo) {
-            QMessageBox::warning(this, QStringLiteral("\u5bfc\u5165"), QStringLiteral("\u6570\u636e\u4ed3\u5e93\u4e0d\u53ef\u7528\u3002"));
+            QMessageBox::warning(this, QStringLiteral("\u5bfc\u5165"), QStringLiteral("\u6570\u636e\u4ed3\u5e93\u4e0d\u53ef\u7528\u3002")); // 中文: 导入 / 数据仓库不可用。
             return;
         }
 
         const QString filePath = QFileDialog::getOpenFileName(
             this,
-            QStringLiteral("\u5bfc\u5165\u5ba2\u6237\u6570\u636e"),
+            QStringLiteral("\u5bfc\u5165\u5ba2\u6237\u6570\u636e"), // 中文: 导入客户数据
             QString(),
-            QStringLiteral("\u6587\u672c\u6216 Markdown \u6587\u4ef6 (*.txt *.md)")
+            QStringLiteral("\u6587\u672c\u6216 Markdown \u6587\u4ef6 (*.txt *.md)") // 中文: 文本或 Markdown 文件 (*.txt *.md)
         );
         if (filePath.isEmpty()) {
             return;
@@ -153,7 +153,7 @@ void BaseMainWindow::bindCoreSignals()
 
         QFile file(filePath);
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            QMessageBox::warning(this, QStringLiteral("\u5bfc\u5165"), QStringLiteral("\u65e0\u6cd5\u6253\u5f00\u5bfc\u5165\u6587\u4ef6\u3002"));
+            QMessageBox::warning(this, QStringLiteral("\u5bfc\u5165"), QStringLiteral("\u65e0\u6cd5\u6253\u5f00\u5bfc\u5165\u6587\u4ef6\u3002")); // 中文: 导入 / 无法打开导入文件。
             return;
         }
 
@@ -177,7 +177,7 @@ void BaseMainWindow::bindCoreSignals()
             QStringList fields;
             if (line.startsWith(QLatin1Char('|'))) {
                 if (line.contains(QStringLiteral("---")) ||
-                    line.contains(QStringLiteral("\u5ba2\u6237\u7f16\u53f7")) ||
+                    line.contains(QStringLiteral("\u5ba2\u6237\u7f16\u53f7")) || // 中文: 客户编号
                     line.contains(QStringLiteral("id"), Qt::CaseInsensitive)) {
                     continue;
                 }
@@ -187,7 +187,7 @@ void BaseMainWindow::bindCoreSignals()
                 }
                 fields = line.split(QLatin1Char('|'));
             } else {
-                if (line.startsWith(QStringLiteral("\u5ba2\u6237\u7f16\u53f7")) ||
+                if (line.startsWith(QStringLiteral("\u5ba2\u6237\u7f16\u53f7")) || // 中文: 客户编号
                     line.startsWith(QStringLiteral("id"), Qt::CaseInsensitive)) {
                     continue;
                 }
@@ -242,8 +242,8 @@ void BaseMainWindow::bindCoreSignals()
             ++importedCount;
         }
 
-        QMessageBox::information(this, QStringLiteral("\u5bfc\u5165\u5b8c\u6210"),
-                                 QStringLiteral("\u6210\u529f\u5bfc\u5165 %1 \u6761\u5ba2\u6237\u6570\u636e\uff0c\u8df3\u8fc7 %2 \u6761\u3002")
+        QMessageBox::information(this, QStringLiteral("\u5bfc\u5165\u5b8c\u6210"), // 中文: 导入完成
+                                 QStringLiteral("\u6210\u529f\u5bfc\u5165 %1 \u6761\u5ba2\u6237\u6570\u636e\uff0c\u8df3\u8fc7 %2 \u6761\u3002") // 中文: 成功导入 %1 条客户数据，跳过 %2 条。
                                      .arg(importedCount)
                                      .arg(skippedCount));
         if (m_leftMenu->currentRow() >= 0) {
@@ -253,15 +253,15 @@ void BaseMainWindow::bindCoreSignals()
 
     connect(m_exportBtn, &QPushButton::clicked, this, [this]() {
         if (!m_repo) {
-            QMessageBox::warning(this, QStringLiteral("\u5bfc\u51fa"), QStringLiteral("\u6570\u636e\u4ed3\u5e93\u4e0d\u53ef\u7528\u3002"));
+            QMessageBox::warning(this, QStringLiteral("\u5bfc\u51fa"), QStringLiteral("\u6570\u636e\u4ed3\u5e93\u4e0d\u53ef\u7528\u3002")); // 中文: 导出 / 数据仓库不可用。
             return;
         }
 
         const QString filePath = QFileDialog::getSaveFileName(
             this,
-            QStringLiteral("\u5bfc\u51fa\u5ba2\u6237\u6570\u636e"),
-            QStringLiteral("\u5ba2\u6237\u6570\u636e.txt"),
-            QStringLiteral("\u6587\u672c\u6216 Markdown \u6587\u4ef6 (*.txt *.md)")
+            QStringLiteral("\u5bfc\u51fa\u5ba2\u6237\u6570\u636e"), // 中文: 导出客户数据
+            QStringLiteral("\u5ba2\u6237\u6570\u636e.txt"), // 中文: 客户数据.txt
+            QStringLiteral("\u6587\u672c\u6216 Markdown \u6587\u4ef6 (*.txt *.md)") // 中文: 文本或 Markdown 文件 (*.txt *.md)
         );
         if (filePath.isEmpty()) {
             return;
@@ -283,12 +283,12 @@ void BaseMainWindow::bindCoreSignals()
         auto* worker = new AsyncExportWorker(customers, filePath);
         connect(worker, &AsyncExportWorker::exportFinished, this, [this, worker](const QString& path, int rowCount) {
             worker->deleteLater();
-            QMessageBox::information(this, QStringLiteral("\u5bfc\u51fa\u5b8c\u6210"),
-                                     QStringLiteral("\u5df2\u5bfc\u51fa %1 \u6761\u5ba2\u6237\u6570\u636e\u5230\uff1a%2").arg(rowCount).arg(path));
+            QMessageBox::information(this, QStringLiteral("\u5bfc\u51fa\u5b8c\u6210"), // 中文: 导出完成
+                                     QStringLiteral("\u5df2\u5bfc\u51fa %1 \u6761\u5ba2\u6237\u6570\u636e\u5230\uff1a%2").arg(rowCount).arg(path)); // 中文: 已导出 %1 条客户数据到：%2
         }, Qt::QueuedConnection);
         connect(worker, &AsyncExportWorker::exportFailed, this, [this, worker](const QString& message) {
             worker->deleteLater();
-            QMessageBox::warning(this, QStringLiteral("\u5bfc\u51fa\u5931\u8d25"), message);
+            QMessageBox::warning(this, QStringLiteral("\u5bfc\u51fa\u5931\u8d25"), message); // 中文: 导出失败
         }, Qt::QueuedConnection);
 
         QThreadPool::globalInstance()->start(worker);

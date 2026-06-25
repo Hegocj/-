@@ -33,7 +33,7 @@ CustomerDetailDialog::CustomerDetailDialog(const QString& customerId,
     , m_repo(repo)
     , m_currentUser(currentUser)
 {
-    setWindowTitle(QStringLiteral("\u5ba2\u6237\u8be6\u60c5"));
+    setWindowTitle(QStringLiteral("\u5ba2\u6237\u8be6\u60c5")); // 中文: 客户详情
     resize(420, 340);
 
     auto* mainLayout = new QVBoxLayout(this);
@@ -44,24 +44,24 @@ CustomerDetailDialog::CustomerDetailDialog(const QString& customerId,
     m_nameEdit = new QLineEdit(this);
     m_phoneEdit = new QLineEdit(this);
     m_levelCombo = new QComboBox(this);
-    m_levelCombo->addItem(QStringLiteral("\u666e\u901a"));
+    m_levelCombo->addItem(QStringLiteral("\u666e\u901a")); // 中文: 普通
     m_levelCombo->addItem(QStringLiteral("VIP"));
     m_ownerCombo = new QComboBox(this);
 
-    formLayout->addRow(QStringLiteral("\u5ba2\u6237ID:"), m_idEdit);
-    formLayout->addRow(QStringLiteral("\u5ba2\u6237\u59d3\u540d:"), m_nameEdit);
-    formLayout->addRow(QStringLiteral("\u8054\u7cfb\u7535\u8bdd:"), m_phoneEdit);
-    formLayout->addRow(QStringLiteral("\u5ba2\u6237\u7b49\u7ea7:"), m_levelCombo);
-    formLayout->addRow(QStringLiteral("\u8d1f\u8d23\u9500\u552e:"), m_ownerCombo);
+    formLayout->addRow(QStringLiteral("\u5ba2\u6237ID:"), m_idEdit); // 中文: 客户ID:
+    formLayout->addRow(QStringLiteral("\u5ba2\u6237\u59d3\u540d:"), m_nameEdit); // 中文: 客户姓名:
+    formLayout->addRow(QStringLiteral("\u8054\u7cfb\u7535\u8bdd:"), m_phoneEdit); // 中文: 联系电话:
+    formLayout->addRow(QStringLiteral("\u5ba2\u6237\u7b49\u7ea7:"), m_levelCombo); // 中文: 客户等级:
+    formLayout->addRow(QStringLiteral("\u8d1f\u8d23\u9500\u552e:"), m_ownerCombo); // 中文: 负责销售:
     mainLayout->addLayout(formLayout);
 
-    m_followBtn = new QPushButton(QStringLiteral("\u67e5\u770b\u548c\u6dfb\u52a0\u8ddf\u8fdb\u8bb0\u5f55"), this);
+    m_followBtn = new QPushButton(QStringLiteral("\u67e5\u770b\u548c\u6dfb\u52a0\u8ddf\u8fdb\u8bb0\u5f55"), this); // 中文: 查看和添加跟进记录
     mainLayout->addWidget(m_followBtn);
 
     auto* featureLayout = new QHBoxLayout();
-    m_claimBtn = new QPushButton(QStringLiteral("\u8ba4\u9886\u5ba2\u6237"), this);
-    m_evictBtn = new QPushButton(QStringLiteral("\u91ca\u653e\u5230\u516c\u6d77\u6c60"), this);
-    m_deleteBtn = new QPushButton(QStringLiteral("\u5220\u9664\u5ba2\u6237"), this);
+    m_claimBtn = new QPushButton(QStringLiteral("\u8ba4\u9886\u5ba2\u6237"), this); // 中文: 认领客户
+    m_evictBtn = new QPushButton(QStringLiteral("\u91ca\u653e\u5230\u516c\u6d77\u6c60"), this); // 中文: 释放到公海池
+    m_deleteBtn = new QPushButton(QStringLiteral("\u5220\u9664\u5ba2\u6237"), this); // 中文: 删除客户
     m_deleteBtn->setStyleSheet(QStringLiteral("QPushButton { background-color: #d9534f; color: white; font-weight: bold; padding: 6px; }"));
     m_claimBtn->hide();
     m_evictBtn->hide();
@@ -74,8 +74,8 @@ CustomerDetailDialog::CustomerDetailDialog(const QString& customerId,
     mainLayout->addLayout(featureLayout);
 
     auto* bottomLayout = new QHBoxLayout();
-    m_saveBtn = new QPushButton(QStringLiteral("\u4fdd\u5b58"), this);
-    m_cancelBtn = new QPushButton(QStringLiteral("\u53d6\u6d88"), this);
+    m_saveBtn = new QPushButton(QStringLiteral("\u4fdd\u5b58"), this); // 中文: 保存
+    m_cancelBtn = new QPushButton(QStringLiteral("\u53d6\u6d88"), this); // 中文: 取消
     bottomLayout->addWidget(m_saveBtn);
     bottomLayout->addWidget(m_cancelBtn);
     mainLayout->addLayout(bottomLayout);
@@ -88,15 +88,15 @@ CustomerDetailDialog::CustomerDetailDialog(const QString& customerId,
     connect(m_deleteBtn, &QPushButton::clicked, this, [this]() {
         const auto button = QMessageBox::critical(
             this,
-            QStringLiteral("\u8b66\u544a"),
-            QStringLiteral("\u786e\u5b9a\u8981\u5220\u9664\u8be5\u5ba2\u6237\u5417\uff1f"),
+            QStringLiteral("\u8b66\u544a"), // 中文: 警告
+            QStringLiteral("\u786e\u5b9a\u8981\u5220\u9664\u8be5\u5ba2\u6237\u5417\uff1f"), // 中文: 确定要删除该客户吗？
             QMessageBox::Yes | QMessageBox::No
         );
         if (button == QMessageBox::Yes) {
             m_repo->deleteCustomer(m_customerId);
             QMessageBox::information(this,
-                                     QStringLiteral("\u6210\u529f"),
-                                     QStringLiteral("\u5ba2\u6237\u6570\u636e\u5df2\u5220\u9664\u3002"));
+                                     QStringLiteral("\u6210\u529f"), // 中文: 成功
+                                     QStringLiteral("\u5ba2\u6237\u6570\u636e\u5df2\u5220\u9664\u3002")); // 中文: 客户数据已删除。
             accept();
         }
     });
@@ -129,7 +129,7 @@ void CustomerDetailDialog::loadCustomerAndSetupPrivilege()
                 break;
             }
         }
-        m_ownerCombo->addItem(ownerId.isEmpty() ? QStringLiteral("\u516c\u6d77\u6c60") : ownerText, ownerId);
+        m_ownerCombo->addItem(ownerId.isEmpty() ? QStringLiteral("\u516c\u6d77\u6c60") : ownerText, ownerId); // 中文: 公海池
         m_ownerCombo->setEnabled(false);
 
         if (ownerId.isEmpty()) {
@@ -171,7 +171,7 @@ void CustomerDetailDialog::loadCustomerAndSetupPrivilege()
 void CustomerDetailDialog::populateSalesCombo()
 {
     m_ownerCombo->clear();
-    m_ownerCombo->addItem(QStringLiteral("\u516c\u6d77\u6c60"), QString());
+    m_ownerCombo->addItem(QStringLiteral("\u516c\u6d77\u6c60"), QString()); // 中文: 公海池
 
     int targetIndex = 0;
     int currentIndex = 1;
@@ -201,13 +201,13 @@ void CustomerDetailDialog::handleSaveOrCommit()
 
     if (m_repo->saveCustomer(m_customer)) {
         QMessageBox::information(this,
-                                 QStringLiteral("\u63d0\u793a"),
-                                 QStringLiteral("\u5ba2\u6237\u4fe1\u606f\u4fdd\u5b58\u6210\u529f\u3002"));
+                                 QStringLiteral("\u63d0\u793a"), // 中文: 提示
+                                 QStringLiteral("\u5ba2\u6237\u4fe1\u606f\u4fdd\u5b58\u6210\u529f\u3002")); // 中文: 客户信息保存成功。
         accept();
     } else {
         QMessageBox::critical(this,
-                              QStringLiteral("\u9519\u8bef"),
-                              QStringLiteral("\u4fdd\u5b58\u5931\u8d25\u3002"));
+                              QStringLiteral("\u9519\u8bef"), // 中文: 错误
+                              QStringLiteral("\u4fdd\u5b58\u5931\u8d25\u3002")); // 中文: 保存失败。
     }
 }
 
@@ -215,13 +215,13 @@ void CustomerDetailDialog::handleClaimAction()
 {
     if (m_repo->claimCustomer(m_customer.getId(), m_currentUser.getUserId())) {
         QMessageBox::information(this,
-                                 QStringLiteral("\u6210\u529f"),
-                                 QStringLiteral("\u5ba2\u6237\u8ba4\u9886\u6210\u529f\u3002"));
+                                 QStringLiteral("\u6210\u529f"), // 中文: 成功
+                                 QStringLiteral("\u5ba2\u6237\u8ba4\u9886\u6210\u529f\u3002")); // 中文: 客户认领成功。
         accept();
     } else {
         QMessageBox::warning(this,
-                             QStringLiteral("\u5931\u8d25"),
-                             QStringLiteral("\u8ba4\u9886\u5931\u8d25\uff0c\u53ef\u80fd\u5ba2\u6237\u5df2\u88ab\u5176\u4ed6\u4eba\u8ba4\u9886\u3002"));
+                             QStringLiteral("\u5931\u8d25"), // 中文: 失败
+                             QStringLiteral("\u8ba4\u9886\u5931\u8d25\uff0c\u53ef\u80fd\u5ba2\u6237\u5df2\u88ab\u5176\u4ed6\u4eba\u8ba4\u9886\u3002")); // 中文: 认领失败，可能客户已被其他人认领。
         reject();
     }
 }
@@ -230,8 +230,8 @@ void CustomerDetailDialog::handleEvictAction()
 {
     const auto reply = QMessageBox::question(
         this,
-        QStringLiteral("\u786e\u8ba4\u91ca\u653e"),
-        QStringLiteral("\u786e\u5b9a\u8981\u5c06\u8be5\u5ba2\u6237\u91ca\u653e\u5230\u516c\u6d77\u6c60\u5417\uff1f"),
+        QStringLiteral("\u786e\u8ba4\u91ca\u653e"), // 中文: 确认释放
+        QStringLiteral("\u786e\u5b9a\u8981\u5c06\u8be5\u5ba2\u6237\u91ca\u653e\u5230\u516c\u6d77\u6c60\u5417\uff1f"), // 中文: 确定要将该客户释放到公海池吗？
         QMessageBox::Yes | QMessageBox::No
     );
 
@@ -239,8 +239,8 @@ void CustomerDetailDialog::handleEvictAction()
         m_customer.setOwnerId(QString());
         if (m_repo->saveCustomer(m_customer)) {
             QMessageBox::information(this,
-                                     QStringLiteral("\u6210\u529f"),
-                                     QStringLiteral("\u5ba2\u6237\u5df2\u91ca\u653e\u5230\u516c\u6d77\u6c60\u3002"));
+                                     QStringLiteral("\u6210\u529f"), // 中文: 成功
+                                     QStringLiteral("\u5ba2\u6237\u5df2\u91ca\u653e\u5230\u516c\u6d77\u6c60\u3002")); // 中文: 客户已释放到公海池。
             accept();
         }
     }

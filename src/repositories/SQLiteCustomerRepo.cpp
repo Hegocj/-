@@ -291,7 +291,7 @@ Customer SQLiteCustomerRepo::customerFromQuery(const QSqlQuery& query)
     const QString rawLevel = query.value(QStringLiteral("level")).toString().trimmed();
     customer.setLevel(rawLevel.compare(QStringLiteral("VIP"), Qt::CaseInsensitive) == 0
                           ? QStringLiteral("VIP")
-                          : QStringLiteral("\u666e\u901a"));
+                          : QStringLiteral("\u666e\u901a")); // 中文: 普通
     customer.setLastFollowTime(QDateTime::fromMSecsSinceEpoch(query.value(QStringLiteral("last_follow_time")).toLongLong()));
     customer.setOwnerId(query.value(QStringLiteral("owner_id")).toString());
     return customer;
@@ -540,7 +540,7 @@ bool SQLiteCustomerRepo::saveCustomer(const Customer& customer)
     query.addBindValue(customer.getPhone());
     query.addBindValue(customer.getLevel().compare(QStringLiteral("VIP"), Qt::CaseInsensitive) == 0
                            ? QStringLiteral("VIP")
-                           : QStringLiteral("\u666e\u901a"));
+                           : QStringLiteral("\u666e\u901a")); // 中文: 普通
     query.addBindValue(customer.getLastFollowTime().toMSecsSinceEpoch());
     query.addBindValue(customer.getOwnerId());
     if (!query.exec()) {

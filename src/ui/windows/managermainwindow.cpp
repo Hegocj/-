@@ -34,9 +34,9 @@ void ManagerMainWindow::initRoleMenu()
 {
     m_leftMenu->clear();
     m_leftMenu->addItems({
-        QStringLiteral("\u4e0b\u5c5e\u56e2\u961f\u5458\u5de5"),
-        QStringLiteral("\u56e2\u961f\u5ba2\u6237\u603b\u89c8"),
-        QStringLiteral("\u7cfb\u7edf\u516c\u6d77\u6c60")
+        QStringLiteral("\u4e0b\u5c5e\u56e2\u961f\u5458\u5de5"), // 中文: 下属团队员工
+        QStringLiteral("\u56e2\u961f\u5ba2\u6237\u603b\u89c8"), // 中文: 团队客户总览
+        QStringLiteral("\u7cfb\u7edf\u516c\u6d77\u6c60") // 中文: 系统公海池
     });
 }
 
@@ -110,11 +110,11 @@ void ManagerMainWindow::executeRowModification(int row)
 bool ManagerMainWindow::allocateCustomerWithLoadBalancing(const QString& customerId)
 {
     QDialog dialog(this);
-    dialog.setWindowTitle(QStringLiteral("\u5ba2\u6237\u5206\u914d"));
+    dialog.setWindowTitle(QStringLiteral("\u5ba2\u6237\u5206\u914d")); // 中文: 客户分配
     dialog.setFixedWidth(380);
 
     auto* layout = new QVBoxLayout(&dialog);
-    layout->addWidget(new QLabel(QStringLiteral("\u9009\u62e9\u8981\u5206\u914d\u7684\u9500\u552e\uff1a"), &dialog));
+    layout->addWidget(new QLabel(QStringLiteral("\u9009\u62e9\u8981\u5206\u914d\u7684\u9500\u552e\uff1a"), &dialog)); // 中文: 选择要分配的销售：
 
     auto* salesCombo = new QComboBox(&dialog);
     const std::vector<User> allUsers = m_repo->getAllUsers();
@@ -138,7 +138,7 @@ bool ManagerMainWindow::allocateCustomerWithLoadBalancing(const QString& custome
     }
 
     for (const auto& sales : departmentSales) {
-        salesCombo->addItem(QStringLiteral("%1 (ID: %2) [\u5f53\u524d\u5ba2\u6237: %3]")
+        salesCombo->addItem(QStringLiteral("%1 (ID: %2) [\u5f53\u524d\u5ba2\u6237: %3]") // 中文: %1 (ID: %2) [当前客户: %3]
                                 .arg(sales.getUsername(), sales.getUserId())
                                 .arg(loadMap[sales.getUserId()]),
                             sales.getUserId());
@@ -199,10 +199,10 @@ void ManagerMainWindow::renderTeamUsers(const std::vector<User>& indicatedUsers)
     m_customerTable->setRowCount(0);
     m_customerTable->setColumnCount(4);
     m_customerTable->setHorizontalHeaderLabels({
-        QStringLiteral("\u5458\u5de5ID"),
-        QStringLiteral("\u59d3\u540d"),
-        QStringLiteral("\u90e8\u95e8"),
-        QStringLiteral("\u8d26\u53f7\u72b6\u6001")
+        QStringLiteral("\u5458\u5de5ID"), // 中文: 员工ID
+        QStringLiteral("\u59d3\u540d"), // 中文: 姓名
+        QStringLiteral("\u90e8\u95e8"), // 中文: 部门
+        QStringLiteral("\u8d26\u53f7\u72b6\u6001") // 中文: 账号状态
     });
 
     for (int row = 0; row < static_cast<int>(indicatedUsers.size()); ++row) {
@@ -213,8 +213,8 @@ void ManagerMainWindow::renderTeamUsers(const std::vector<User>& indicatedUsers)
         m_customerTable->setItem(row, 2, new QTableWidgetItem(user.getDepartment()));
 
         auto* statusItem = new QTableWidgetItem(user.isActive()
-                                                    ? QStringLiteral("\u5728\u804c")
-                                                    : QStringLiteral("\u79bb\u804c"));
+                                                    ? QStringLiteral("\u5728\u804c") // 中文: 在职
+                                                    : QStringLiteral("\u79bb\u804c")); // 中文: 离职
         if (!user.isActive()) {
             statusItem->setForeground(QBrush(Qt::red));
         }
@@ -234,11 +234,11 @@ void ManagerMainWindow::renderCustomers(const std::vector<Customer>& customers)
     m_customerTable->setRowCount(0);
     m_customerTable->setColumnCount(5);
     m_customerTable->setHorizontalHeaderLabels({
-        QStringLiteral("\u5ba2\u6237ID"),
-        QStringLiteral("\u5ba2\u6237\u59d3\u540d"),
-        QStringLiteral("\u8054\u7cfb\u7535\u8bdd"),
-        QStringLiteral("\u5ba2\u6237\u7b49\u7ea7"),
-        QStringLiteral("\u8d1f\u8d23\u9500\u552e")
+        QStringLiteral("\u5ba2\u6237ID"), // 中文: 客户ID
+        QStringLiteral("\u5ba2\u6237\u59d3\u540d"), // 中文: 客户姓名
+        QStringLiteral("\u8054\u7cfb\u7535\u8bdd"), // 中文: 联系电话
+        QStringLiteral("\u5ba2\u6237\u7b49\u7ea7"), // 中文: 客户等级
+        QStringLiteral("\u8d1f\u8d23\u9500\u552e") // 中文: 负责销售
     });
 
     for (int row = 0; row < static_cast<int>(customers.size()); ++row) {
@@ -250,14 +250,14 @@ void ManagerMainWindow::renderCustomers(const std::vector<Customer>& customers)
                                                   ? QStringLiteral("[VIP] %1").arg(customer.getName())
                                                   : customer.getName());
         auto* phoneItem = new QTableWidgetItem(customer.getPhone());
-        auto* levelItem = new QTableWidgetItem(isVip ? QStringLiteral("VIP") : QStringLiteral("\u666e\u901a"));
+        auto* levelItem = new QTableWidgetItem(isVip ? QStringLiteral("VIP") : QStringLiteral("\u666e\u901a")); // 中文: 普通
 
         const QString owner = customer.getOwnerId();
         const QString ownerText = salesNameById.find(owner) == salesNameById.end()
                                       ? owner
                                       : salesNameById.at(owner);
         auto* ownerItem = new QTableWidgetItem(owner.isEmpty()
-                                                   ? QStringLiteral("\u516c\u6d77\u6c60")
+                                                   ? QStringLiteral("\u516c\u6d77\u6c60") // 中文: 公海池
                                                    : ownerText);
         if (owner.isEmpty()) {
             ownerItem->setForeground(QBrush(Qt::darkYellow));
@@ -268,7 +268,7 @@ void ManagerMainWindow::renderCustomers(const std::vector<Customer>& customers)
                 item->setBackground(vipBrush);
                 item->setForeground(QBrush(QColor(128, 78, 0)));
             }
-            levelItem->setToolTip(QStringLiteral("VIP\u5ba2\u6237\uff0c\u5df2\u7f6e\u9876\u663e\u793a"));
+            levelItem->setToolTip(QStringLiteral("VIP\u5ba2\u6237\uff0c\u5df2\u7f6e\u9876\u663e\u793a")); // 中文: VIP客户，已置顶显示
         }
         m_customerTable->setItem(row, 0, idItem);
         m_customerTable->setItem(row, 1, nameItem);

@@ -41,8 +41,8 @@ int main(int argc, char *argv[])
     std::shared_ptr<ICustomerRepository> repo = std::make_shared<SQLiteCustomerRepo>(randomDataConfig);
     if (!repo->initializeDatabase(QStringLiteral("crm.db"))) {
         QMessageBox::critical(nullptr,
-                              QStringLiteral("\u7cfb\u7edf\u9519\u8bef"),
-                              QStringLiteral("\u672c\u5730\u6570\u636e\u5e93\u521d\u59cb\u5316\u5931\u8d25\uff0c\u7a0b\u5e8f\u9000\u51fa\uff01"));
+                              QStringLiteral("\u7cfb\u7edf\u9519\u8bef"), // 中文: 系统错误
+                              QStringLiteral("\u672c\u5730\u6570\u636e\u5e93\u521d\u59cb\u5316\u5931\u8d25\uff0c\u7a0b\u5e8f\u9000\u51fa\uff01")); // 中文: 本地数据库初始化失败，程序退出！
         return -1;
     }
 
@@ -72,8 +72,8 @@ int main(int argc, char *argv[])
             break;
         default:
             QMessageBox::warning(nullptr,
-                                 QStringLiteral("\u6743\u9650\u9519\u8bef"),
-                                 QStringLiteral("\u672a\u77e5\u7684\u7528\u6237\u89d2\u8272\uff0c\u5df2\u62e6\u622a\u3002"));
+                                 QStringLiteral("\u6743\u9650\u9519\u8bef"), // 中文: 权限错误
+                                 QStringLiteral("\u672a\u77e5\u7684\u7528\u6237\u89d2\u8272\uff0c\u5df2\u62e6\u622a\u3002")); // 中文: 未知的用户角色，已拦截。
             repo->closeDatabase();
             return -1;
         }

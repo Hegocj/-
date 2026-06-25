@@ -30,7 +30,7 @@ LoginDialog::LoginDialog(ICustomerRepository* repo, QWidget *parent)
     ui->setupUi(this);
 
     resize(400, 300);
-    setWindowTitle(QStringLiteral("\u7cfb\u7edf\u767b\u5f55"));
+    setWindowTitle(QStringLiteral("\u7cfb\u7edf\u767b\u5f55")); // 中文: 系统登录
 
     QWidget* centerContainer = new QWidget(this);
     centerContainer->setFixedWidth(280);
@@ -46,8 +46,8 @@ LoginDialog::LoginDialog(ICustomerRepository* repo, QWidget *parent)
     ui->label_userpassword->setFixedWidth(55);
     ui->label_username->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     ui->label_userpassword->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    ui->label_username->setText(QStringLiteral("\u7528\u6237\u540d"));
-    ui->label_userpassword->setText(QStringLiteral("\u5bc6\u7801"));
+    ui->label_username->setText(QStringLiteral("\u7528\u6237\u540d")); // 中文: 用户名
+    ui->label_userpassword->setText(QStringLiteral("\u5bc6\u7801")); // 中文: 密码
     ui->passwordEdit->setEchoMode(QLineEdit::Password);
 
     ui->label_username->setParent(centerContainer);
@@ -64,7 +64,7 @@ LoginDialog::LoginDialog(ICustomerRepository* repo, QWidget *parent)
     centerLayout->addLayout(formLayout);
 
     ui->loginButton->setFixedHeight(35);
-    ui->loginButton->setText(QStringLiteral("\u767b\u5f55"));
+    ui->loginButton->setText(QStringLiteral("\u767b\u5f55")); // 中文: 登录
     centerLayout->addWidget(ui->loginButton);
 
     auto* globalHorizontalLayout = new QHBoxLayout();
@@ -96,8 +96,8 @@ void LoginDialog::handleLoginSubmit()
 
     if (username.isEmpty() || password.isEmpty()) {
         QMessageBox::warning(this,
-                             QStringLiteral("\u63d0\u793a"),
-                             QStringLiteral("\u7528\u6237\u540d\u6216\u5bc6\u7801\u4e0d\u80fd\u4e3a\u7a7a\u3002"));
+                             QStringLiteral("\u63d0\u793a"), // 中文: 提示
+                             QStringLiteral("\u7528\u6237\u540d\u6216\u5bc6\u7801\u4e0d\u80fd\u4e3a\u7a7a\u3002")); // 中文: 用户名或密码不能为空。
         return;
     }
 
@@ -121,7 +121,7 @@ void LoginDialog::handleLoginSubmit()
         accept();
     } else {
         QMessageBox::warning(this,
-                             QStringLiteral("\u767b\u5f55\u5931\u8d25"),
-                             QStringLiteral("\u7528\u6237\u540d\u6216\u5bc6\u7801\u65e0\u6548\u3002"));
+                             QStringLiteral("\u767b\u5f55\u5931\u8d25"), // 中文: 登录失败
+                             QStringLiteral("\u7528\u6237\u540d\u6216\u5bc6\u7801\u65e0\u6548\u3002")); // 中文: 用户名或密码无效。
     }
 }

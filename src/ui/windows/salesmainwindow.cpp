@@ -28,8 +28,8 @@ void SalesMainWindow::initRoleMenu()
 {
     m_leftMenu->clear();
     m_leftMenu->addItems({
-        QStringLiteral("\u6211\u7684\u5ba2\u6237"),
-        QStringLiteral("\u7cfb\u7edf\u516c\u6d77\u6c60")
+        QStringLiteral("\u6211\u7684\u5ba2\u6237"), // 中文: 我的客户
+        QStringLiteral("\u7cfb\u7edf\u516c\u6d77\u6c60") // 中文: 系统公海池
     });
 }
 
@@ -74,10 +74,10 @@ void SalesMainWindow::renderTableData(const std::vector<Customer>& customers)
     m_customerTable->setRowCount(0);
     m_customerTable->setColumnCount(4);
     m_customerTable->setHorizontalHeaderLabels({
-        QStringLiteral("\u5ba2\u6237ID"),
-        QStringLiteral("\u5ba2\u6237\u59d3\u540d"),
-        QStringLiteral("\u8054\u7cfb\u7535\u8bdd"),
-        QStringLiteral("\u7b49\u7ea7/\u72b6\u6001")
+        QStringLiteral("\u5ba2\u6237ID"), // 中文: 客户ID
+        QStringLiteral("\u5ba2\u6237\u59d3\u540d"), // 中文: 客户姓名
+        QStringLiteral("\u8054\u7cfb\u7535\u8bdd"), // 中文: 联系电话
+        QStringLiteral("\u7b49\u7ea7/\u72b6\u6001") // 中文: 等级/状态
     });
 
     for (int row = 0; row < static_cast<int>(customers.size()); ++row) {
@@ -91,8 +91,8 @@ void SalesMainWindow::renderTableData(const std::vector<Customer>& customers)
         auto* phoneItem = new QTableWidgetItem(customer.getPhone());
 
         auto* levelItem = new QTableWidgetItem(customer.getOwnerId().isEmpty()
-                                                   ? QStringLiteral("\u516c\u6d77\u6c60 - %1").arg(isVip ? QStringLiteral("VIP") : QStringLiteral("\u666e\u901a"))
-                                                   : (isVip ? QStringLiteral("VIP") : QStringLiteral("\u666e\u901a")));
+                                                   ? QStringLiteral("\u516c\u6d77\u6c60 - %1").arg(isVip ? QStringLiteral("VIP") : QStringLiteral("\u666e\u901a")) // 中文: 公海池 - %1 / 普通
+                                                   : (isVip ? QStringLiteral("VIP") : QStringLiteral("\u666e\u901a"))); // 中文: 普通
         if (customer.getOwnerId().isEmpty()) {
             levelItem->setForeground(QBrush(Qt::darkYellow));
         }
@@ -102,7 +102,7 @@ void SalesMainWindow::renderTableData(const std::vector<Customer>& customers)
                 item->setBackground(vipBrush);
                 item->setForeground(QBrush(QColor(128, 78, 0)));
             }
-            levelItem->setToolTip(QStringLiteral("VIP\u5ba2\u6237\uff0c\u5df2\u7f6e\u9876\u663e\u793a"));
+            levelItem->setToolTip(QStringLiteral("VIP\u5ba2\u6237\uff0c\u5df2\u7f6e\u9876\u663e\u793a")); // 中文: VIP客户，已置顶显示
         }
         m_customerTable->setItem(row, 0, idItem);
         m_customerTable->setItem(row, 1, nameItem);
