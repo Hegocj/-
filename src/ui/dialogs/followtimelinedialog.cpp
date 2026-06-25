@@ -7,6 +7,9 @@
  *
  * 主要职责：从 ICustomerRepository 读取指定客户的跟进记录并渲染为时间线文本；
  * 用户点击添加按钮后录入新内容，生成 FollowRecord 并写回数据库。
+ *
+ * 编码说明：本文件中形如 "\u4e2d\u6587" 的内容是 Unicode 转义字符串，
+ * 编译运行后会显示为中文，用来避免不同编辑器编码设置导致界面文字乱码。
  */
 #include "FollowTimelineDialog.h"
 

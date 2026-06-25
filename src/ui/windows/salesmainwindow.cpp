@@ -7,6 +7,9 @@
  *
  * 主要职责：按菜单加载本人客户或公海客户，执行权限范围内的客户搜索，双击客户打开
  * CustomerDetailDialog，并在表格中突出显示 VIP 和公海状态。
+ *
+ * 编码说明：本文件中形如 "\u4e2d\u6587" 的内容是 Unicode 转义字符串，
+ * 编译运行后会显示为中文，用来避免不同编辑器编码设置导致界面文字乱码。
  */
 #include "SalesMainWindow.h"
 #include "customerdetaildialog.h"

@@ -6,7 +6,7 @@
  * 对象在界面展示、数据库读写、导入导出、公海池流转等场景中被反复传递。
  *
  * 主要职责：保存客户编号、姓名、联系电话、客户等级、最后跟进时间和所属销售 ID，
- * 并提供基础合法性校验，确保客户姓名非空且手机号符合常见大陆手机号格式。
+ * 并提供基础合法性校验，确保客户姓名非空且手机号为 1 开头的 11 位数字。
  */
 #ifndef CUSTOMER_H
 #define CUSTOMER_H
@@ -44,7 +44,7 @@ public:
 
     bool isValid() const {
         if (m_name.trimmed().isEmpty()) return false;
-        QRegularExpression regex("^1[3-9]\\d{9}$");
+        QRegularExpression regex("^1\\d{10}$");
         return regex.match(m_phone).hasMatch();
     }
 

@@ -8,6 +8,9 @@
  * 主要职责：创建 QApplication，初始化 SQLiteCustomerRepo，循环处理登录/登出，
  * 根据 UserRole 创建 SalesMainWindow、ManagerMainWindow 或 AdminMainWindow，
  * 并为每个主窗口启动 HighSeasManager 定时回收机制。
+ *
+ * 编码说明：本文件中形如 "\u4e2d\u6587" 的内容是 Unicode 转义字符串，
+ * 编译运行后会显示为中文，用来避免不同编辑器编码设置导致界面文字乱码。
  */
 #include <QApplication>
 #include <QEventLoop>

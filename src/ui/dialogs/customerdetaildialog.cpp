@@ -8,6 +8,9 @@
  *
  * 主要职责：加载客户基础信息，按角色启用或禁用表单字段和按钮；支持保存修改、
  * 销售认领公海客户、经理或管理员释放客户到公海、删除客户，以及打开 FollowTimelineDialog。
+ *
+ * 编码说明：本文件中形如 "\u4e2d\u6587" 的内容是 Unicode 转义字符串，
+ * 编译运行后会显示为中文，用来避免不同编辑器编码设置导致界面文字乱码。
  */
 #include "customerdetaildialog.h"
 #include "followtimelinedialog.h"

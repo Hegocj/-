@@ -9,6 +9,9 @@
  * 主要职责：渲染全部客户、公海池客户和部门组织树；支持新增客户、销售、经理账号；
  * 支持查看账号密码、分配部门经理、打开客户详情和员工详情弹窗。其协作对象主要包括
  * CustomerDetailDialog、UserDetailDialog 与 ICustomerRepository。
+ *
+ * 编码说明：本文件中形如 "\u4e2d\u6587" 的内容是 Unicode 转义字符串，
+ * 编译运行后会显示为中文，用来避免不同编辑器编码设置导致界面文字乱码。
  */
 #include "AdminMainWindow.h"
 #include "customerdetaildialog.h"
@@ -46,6 +49,8 @@ AdminMainWindow::AdminMainWindow(std::shared_ptr<ICustomerRepository> repo, cons
     : BaseMainWindow(repo, user, parent)
 {
     if (m_rightContainer && m_rightContainer->layout()) {
+        // QStringLiteral 中的 \uXXXX 是 Unicode 转义写法，用来表示中文字符。
+        // 例如 "\u6dfb\u52a0\u5ba2\u6237" 运行时会显示为“添加客户”，这样可以避免源码编码不一致导致中文乱码。
         m_addCustomerBtn = new QPushButton(QStringLiteral("\u6dfb\u52a0\u5ba2\u6237"), m_rightContainer);
         m_addSalesBtn = new QPushButton(QStringLiteral("\u6dfb\u52a0\u9500\u552e"), m_rightContainer);
         m_addManagerBtn = new QPushButton(QStringLiteral("\u6dfb\u52a0\u7ecf\u7406"), m_rightContainer);
@@ -549,6 +554,9 @@ void AdminMainWindow::showAddCustomerDialog()
     auto* ownerCombo = new QComboBox(&dialog);
 
     idEdit->setText(QStringLiteral("C%1").arg(QDateTime::currentMSecsSinceEpoch()));
+    phoneEdit->setInputMask(QStringLiteral("00000000000"));
+    phoneEdit->setPlaceholderText(QStringLiteral("请输入 11 位手机号"));
+    phoneEdit->setText(QStringLiteral("13%1").arg(QDateTime::currentMSecsSinceEpoch() % 1000000000, 9, 10, QLatin1Char('0')));
     levelCombo->addItem(QStringLiteral("\u666e\u901a"));
     levelCombo->addItem(QStringLiteral("VIP"));
     ownerCombo->addItem(QStringLiteral("\u516c\u6d77\u6c60"), QString());
@@ -566,40 +574,53 @@ void AdminMainWindow::showAddCustomerDialog()
     layout->addLayout(form);
 
     auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
-    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
     layout->addWidget(buttons);
 
-    if (dialog.exec() != QDialog::Accepted) {
-        return;
-    }
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
+        Customer customer(
+            idEdit->text().trimmed(),
+            nameEdit->text().trimmed(),
+            phoneEdit->text().trimmed(),
+            levelCombo->currentText(),
+            QDateTime::currentDateTime(),
+            ownerCombo->currentData().toString()
+        );
 
-    Customer customer(
-        idEdit->text().trimmed(),
-        nameEdit->text().trimmed(),
-        phoneEdit->text().trimmed(),
-        levelCombo->currentText(),
-        QDateTime::currentDateTime(),
-        ownerCombo->currentData().toString()
-    );
-
-    if (!customer.isValid()) {
-        QMessageBox::warning(this, QStringLiteral("\u6dfb\u52a0\u5931\u8d25"),
-                             QStringLiteral("\u5ba2\u6237\u59d3\u540d\u4e0d\u80fd\u4e3a\u7a7a\uff0c\u624b\u673a\u53f7\u5fc5\u987b\u5408\u6cd5\u3002"));
-        return;
-    }
-
-    for (const auto& existing : m_repo->getAllCustomers()) {
-        if (existing.getId() == customer.getId()) {
-            QMessageBox::warning(this, QStringLiteral("\u6dfb\u52a0\u5931\u8d25"),
-                                 QStringLiteral("\u5ba2\u6237\u7f16\u53f7\u5df2\u5b58\u5728\u3002"));
+        if (customer.getId().trimmed().isEmpty()) {
+            QMessageBox::warning(&dialog,
+                                 QStringLiteral("\u6dfb\u52a0\u5931\u8d25"),
+                                 QStringLiteral("\u5ba2\u6237\u7f16\u53f7\u4e0d\u80fd\u4e3a\u7a7a\u3002"));
             return;
         }
-    }
 
-    if (!m_repo->saveCustomer(customer)) {
-        QMessageBox::critical(this, QStringLiteral("\u6dfb\u52a0\u5931\u8d25"),
-                              QStringLiteral("\u4fdd\u5b58\u5ba2\u6237\u5931\u8d25\u3002"));
+        if (!customer.isValid()) {
+            QMessageBox::warning(&dialog,
+                                 QStringLiteral("\u6dfb\u52a0\u5931\u8d25"),
+                                 QStringLiteral("\u5ba2\u6237\u59d3\u540d\u4e0d\u80fd\u4e3a\u7a7a\uff0c\u624b\u673a\u53f7\u5fc5\u987b\u662f 1 \u5f00\u5934\u7684 11 \u4f4d\u6570\u5b57\u3002"));
+            return;
+        }
+
+        for (const auto& existing : m_repo->getAllCustomers()) {
+            if (existing.getId() == customer.getId()) {
+                QMessageBox::warning(&dialog,
+                                     QStringLiteral("\u6dfb\u52a0\u5931\u8d25"),
+                                     QStringLiteral("\u5ba2\u6237\u7f16\u53f7\u5df2\u5b58\u5728\u3002"));
+                return;
+            }
+        }
+
+        if (!m_repo->saveCustomer(customer)) {
+            QMessageBox::critical(&dialog,
+                                  QStringLiteral("\u6dfb\u52a0\u5931\u8d25"),
+                                  QStringLiteral("\u4fdd\u5b58\u5ba2\u6237\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5\u672c\u5730\u6570\u636e\u5e93\u662f\u5426\u53ef\u5199\u3002"));
+            return;
+        }
+
+        dialog.accept();
+    });
+
+    if (dialog.exec() != QDialog::Accepted) {
         return;
     }
 

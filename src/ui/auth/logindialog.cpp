@@ -7,6 +7,9 @@
  *
  * 主要职责：初始化登录表单，绑定提交按钮和回车行为，调用 ICustomerRepository
  * 校验账号密码，并在认证失败时给出界面提示。
+ *
+ * 编码说明：本文件中形如 "\u4e2d\u6587" 的内容是 Unicode 转义字符串，
+ * 编译运行后会显示为中文，用来避免不同编辑器编码设置导致界面文字乱码。
  */
 #include "logindialog.h"
 #include "ui_logindialog.h"

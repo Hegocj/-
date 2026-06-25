@@ -7,6 +7,9 @@
  *
  * 主要职责：创建 user、customer、follow_record 表；实现登录校验、员工维护、客户
  * CRUD、按角色范围查询、跟进记录写入、公海池认领/释放和客户资产交接等数据库操作。
+ *
+ * 编码说明：本文件中形如 "\u4e2d\u6587" 的内容是 Unicode 转义字符串，
+ * 编译运行后会显示为中文，用来避免不同编辑器编码设置导致界面文字乱码。
  */
 #include "SQLiteCustomerRepo.h"
 #include "DatabaseManager.h"
@@ -540,7 +543,11 @@ bool SQLiteCustomerRepo::saveCustomer(const Customer& customer)
                            : QStringLiteral("\u666e\u901a"));
     query.addBindValue(customer.getLastFollowTime().toMSecsSinceEpoch());
     query.addBindValue(customer.getOwnerId());
-    return query.exec();
+    if (!query.exec()) {
+        qDebug() << "Save customer error:" << customer.getId() << query.lastError();
+        return false;
+    }
+    return true;
 }
 
 bool SQLiteCustomerRepo::deleteCustomer(const QString& customerId)
