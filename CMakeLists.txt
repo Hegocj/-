@@ -8,24 +8,17 @@ project(customerControlSystem LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# 设置 UI 文件搜索路径（相对于源文件目录）
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/SourceCode/ui)
+
 # 查找 Qt 依赖组件
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Sql)
 
 # Qt 标准项目设置
 qt_standard_project_setup()
 
-# 添加可执行程序和所有源文件
-qt_add_executable(customerControlSystem
-    WIN32 MACOSX_BUNDLE
-
-    # 入口文件
-    SourceCode/src/main.cpp
-
-    # UI 文件
-    SourceCode/ui/logindialog.ui
-    SourceCode/ui/mainwindow.ui
-
-    # 头文件
+# 定义源文件列表
+set(HEADERS
     SourceCode/include/GlobalModels.h
     SourceCode/include/user.h
     SourceCode/include/Customer.h
@@ -44,8 +37,10 @@ qt_add_executable(customerControlSystem
     SourceCode/include/customerdetaildialog.h
     SourceCode/include/followtimelinedialog.h
     SourceCode/include/userdetaildialog.h
+)
 
-    # 实现文件
+set(SOURCES
+    SourceCode/src/main.cpp
     SourceCode/src/logindialog.cpp
     SourceCode/src/SQLiteCustomerRepo.cpp
     SourceCode/src/DatabaseManager.cpp
@@ -59,6 +54,19 @@ qt_add_executable(customerControlSystem
     SourceCode/src/customerdetaildialog.cpp
     SourceCode/src/followtimelinedialog.cpp
     SourceCode/src/userdetaildialog.cpp
+)
+
+set(UIS
+    SourceCode/ui/logindialog.ui
+    SourceCode/ui/mainwindow.ui
+)
+
+# 添加可执行程序
+qt_add_executable(customerControlSystem
+    WIN32 MACOSX_BUNDLE
+    ${SOURCES}
+    ${HEADERS}
+    ${UIS}
 )
 
 # 设置包含目录
