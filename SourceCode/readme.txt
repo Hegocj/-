@@ -81,16 +81,14 @@ SourceCode/
 ├── src/              # 源文件目录
 │   ├── main.cpp           # 程序入口
 │   ├── *.cpp              # 各模块实现
-│
-└── ui/               # UI 文件目录
-    ├── logindialog.ui     # 登录界面
-    └── mainwindow.ui     # 主窗口界面
+│   ├── logindialog.ui     # 登录界面
+│   └── mainwindow.ui     # 主窗口界面
 
 
 六、构建说明
 --------------------------------------------------------------------------------
 1. 环境要求
-   - Qt 6.5 或更高版本
+   - Qt 6.5 或更高版本（推荐 Qt 6.8+）
    - CMake 3.19 或更高版本
    - 支持 C++20 的编译器
 
@@ -114,7 +112,7 @@ SourceCode/
 2. 所有实体类使用 const 引用传参，提升系统性能
 3. 头文件放在 SourceCode/include/ 目录
 4. 实现文件放在 SourceCode/src/ 目录
-5. UI 文件放在 SourceCode/ui/ 目录
+5. UI 文件放在 SourceCode/src/ 目录
 
 
 八、默认账号
